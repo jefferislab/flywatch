@@ -1,10 +1,12 @@
 Package: flywatch
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Analyse fly behaviour data
 Version: 0.1
 Date: 2015-12-23
-Author: Gregory Jefferis
-Maintainer: "Gregory Jefferis <jefferis@gmail.com> [aut, cre]"
-Description: More about what it does (maybe more than one line)
+Author: Gregory Jefferis, Michael-John Dolan, Paavo Huoviala
+Maintainer: Gregory Jefferis <jefferis@gmail.com>
+Description: For the time being this is focussed on Yoshi Aso's four quadrant
+    optogenenetic behaviour devloped at HHMI Janelia Research Campus.
 License: GPL-3
 LazyData: TRUE
+Imports: tiff, nabor, stringr, lubridate

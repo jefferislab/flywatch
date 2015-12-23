@@ -1,11 +1,5 @@
 # Greg's little attempt a processing yoshi's behaviour tiffs
 
-library("tiff")
-library("nabor")
-library("stringr")
-library("lubridate")
-
-if(!require("nabor")) install.packages('nabor')
 #' read xy data from a single behaviour summary file
 read_ybr_xy<-function(f) {
   rawd=readTIFF(f, all=TRUE, as.is=FALSE)
@@ -15,7 +9,7 @@ read_ybr_xy<-function(f) {
 #' Read the summary values (inc PI) from first row of a
 #' yoshi behaviour tiff and return a multi timeseries
 #' object
-#' 
+#'
 #' @examples
 #' some_summ=read_ybr_summary("some.tif")
 #' plot(some_summ[,c(1,2,7)])
@@ -44,7 +38,7 @@ read_ybr_summary<-function(f, ncols=26, start=0, deltat=1/30, ...) {
 
 #' calculate the raw displacements between nearest neighbour flies
 #' in sequential
-#' 
+#'
 calc_raw_displacements<-function(xy){
   distres=list()
   for(f in seq_along(xy)[-1]){
@@ -61,25 +55,24 @@ median_displacement<-function(xy, deltat=1/30){
   ts(md,start = 0, deltat = deltat)
 }
 
-plot_smoothed_displacement<-function(xy, filterwidth=1, lights=c(30,60,90,120), 
+plot_smoothed_displacement<-function(xy, filterwidth=1, lights=c(30,60,90,120),
                                      lightcol=rgb(1,0,0,alpha=.3), ...){
   if(is.character(xy)) xy=read_ybr_xy(xy)
   mxy=median_displacement(xy)
-  
+
   f=rep(deltat(mxy)/filterwidth, filterwidth/deltat(mxy))
   sm_mxy=stats::filter(mxy, f)
   plot(sm_mxy, ...)
-  
+
   rand_ts=ts(sample(mxy), start=start(mxy), deltat = deltat(mxy))
   lines(stats::filter(rand_ts, f), col='red')
-  rect(lights[1], par("usr")[3], lights[2], 
+  rect(lights[1], par("usr")[3], lights[2],
        par("usr")[4], col=lightcol, border = NA)
-  rect(lights[3], par("usr")[3], lights[4], 
+  rect(lights[3], par("usr")[3], lights[4],
        par("usr")[4], col=lightcol, border = NA)
-  
+
 }
 
-setwd("~/projects/Paavo/2015-11-behaviour/Paavo_newrig/")
 summarise_tifs<-function(path="."){
   all_tifs=dir(path=path,pattern="tif$", recursive=T)
   timestamps=str_extract(dirname(all_tifs),"201[0-9]{5}T[0-9]{6}")
@@ -87,7 +80,3 @@ summarise_tifs<-function(path="."){
   geno=str_match(dirname(all_tifs),"_([^_]+)_20X")[,2]
   data.frame(tif=all_tifs,geno=geno, time=ptimestamps, stringsAsFactors = F)
 }
-
-# go over all the plots for a given genotype
-for(f in subset(df, geno=='Gr66a')[,'tif']) 
-  plot_smoothed_displacement(f, main=basename(dirname(f)))
