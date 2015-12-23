@@ -120,13 +120,33 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 
 #' Plot smoothed displacement estimate
 #'
+#' @param filter \emph{Either} the width in seconds of a simple smoothing filter
+#'   \emph{or} a filter defined according to \code{\link[stats]{filter}}. The
+#'   signalling value of \code{filter=F} suppresses any filtering. Defaults to
+#'   1s boxcar filter.
+#' @inheritParams ybr_raw_displacements
+#' @inheritParams plot_ybr
+#' @export
+#' @family ybr-displacement
+#' @family ybr-plot
+#' @seealso \code{\link[stats]{filter}}, \code{\link[stats]{plot.ts}}
+#' @examples
+#' tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
+#' plot_smoothed_displacement(tiffdf$tiff[1])
+plot_smoothed_displacement<-function(xy, filter=1, ...){
+  mxy=ybr_median_displacement(xy)
+  plot_ybr(mxy, filter=filter, ...)
+}
+
+#' Plot time series data derived from Yoshi Behaviour Rig
+#'
 #' @details This plot includes an optional smoothed randomised time series which
 #'   is made by randomly permuting the timepoints in the main time series and
 #'   then applying the same smoothing filter. If you want this time series to be
 #'   reliably the same pseudorandom series for publication purposes you may need
 #'   to see the random seed (see \code{\link[base]{set.seed}})
-#'
-#' @inheritParams ybr_raw_displacements
+#' @param x A (multi-)time series object containing one or more behavioural
+#'   variables.
 #' @param filter \emph{Either} the width in seconds of a simple smoothing filter
 #'   \emph{or} a filter defined according to \code{\link[stats]{filter}}. The
 #'   signalling value of \code{filter=F} suppresses any filtering.
@@ -138,28 +158,37 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 #' @param lights A length 2 or more vector defining the lights on/off times for
 #'   the experiment (in seconds).
 #' @param lightcol The colour to use to plot the lights on epochs
-#' @param ... Additional arguments to \code{plot.ts}
-#' @family ybr-displacement
+#' @param ... Additional arguments to \code{\link[stats]{plot.ts}}
+#' @seealso \code{\link[stats]{filter}}, \code{\link[stats]{plot.ts}}
+#' @family ybr-plot
 #' @export
-#' @seealso \code{\link[stats]{filter}}
-#'   tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
-#'   plot_smoothed_displacement(tiffdf$tiff[1])
-plot_smoothed_displacement<-function(xy, filter=1, sides=1, randts=FALSE,
-                                     lights=c(on1=30, off1=60, on2=90, off2=120),
-                                     lightcol=rgb(1,0,0,alpha=.3), ...){
-  mxy=ybr_median_displacement(xy)
+#' @examples
+#' tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
+#' summdata=read_ybr_summary(tiffdf$tiff[1])
+#' plot_ybr(summdata[,'PIpixel'], filter=FALSE)
+#' plot_ybr(summdata[,'PIpixel'], filter=1)
+#' plot_ybr(summdata[,'PIpixel'], filter=1, randts=TRUE)
+#' plot_ybr(summdata[,c('PIpixel','PIn')], filter=1)
+#' plot_ybr(summdata[,c('PIpixel','PIn')], filter=1)
+#' plot_ybr(summdata[,c('PIpixel', 'PIn')], filter=1, plot.type = "single",
+#'   col=c('red','blue'))
+plot_ybr<-function(x, filter=FALSE, sides=1, randts=FALSE,
+                   lights=c(on1=30, off1=60, on2=90, off2=120),
+                   lightcol=rgb(1,0,0,alpha=.3), ...){
+
   # computer filter if required
   if(!isTRUE(!filter)){
     f=if(length(filter)==1) {
-      rep(deltat(mxy)/filter, filter/deltat(mxy))
+      rep(deltat(x)/filter, filter/deltat(x))
     } else filter
-    orig_mxy=mxy
-    mxy=stats::filter(mxy, f, sides=sides)
+    orig_x=x
+    x=stats::filter(x, f, sides=sides)
+    dimnames(x)=dimnames(orig_x)
   }
-  plot(mxy, ylab='median displacement per frame', ...)
+  plot(x, ...)
 
   if(randts) {
-    rand_ts=ts(sample(orig_mxy), start=start(orig_mxy), deltat = deltat(orig_mxy))
+    rand_ts=ts(sample(orig_x), start=start(orig_x), deltat = deltat(orig_x))
     if(!isTRUE(!filter))
       rand_ts=stats::filter(rand_ts, f)
     lines(rand_ts, col='red')
@@ -168,11 +197,6 @@ plot_smoothed_displacement<-function(xy, filter=1, sides=1, randts=FALSE,
   onidxs=seq.int(from=1, to=length(lights), by=2)
   rect(lights[onidxs], par("usr")[3], lights[onidxs+1],
        par("usr")[4], col=lightcol, border = NA)
-}
-
-smoothed_ybr_plot<-function(x, filter=1, sides=1,
-                            lights=c(on1=30, off1=60, on2=90, off2=120),
-                            lightcol=rgb(1,0,0,alpha=.3), ...){
 
 }
 #' Find all the Yoshi behaviour tiffs in a directory hierarchy
