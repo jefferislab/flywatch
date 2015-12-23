@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<olfactoryArena assay="Arena1" exp_datetime="" experimenter="Yoshi">
+    <apparatus room="3E.288"/>
+    <flies cross_date="20151101T000000" female_parent="20XChrimsonR"
+        flip_used="0" gender="f" male_parent="Gr66a" num_flies="15">
+        <genotype/>
+        <rearing incubator="O"/>
+        <handling cross_food="1_500" datetime_sorted="20151101T000000"
+            handler_cross="Yoshi" handler_sorting="Yoshi" sort_food="1_250"/>
+    </flies>
+    <environment IR_intensity="30" LED_intensity_scale="LINEAR"
+        MFC1_massFlow="" MFC1_pressure="" MFC1_temp="" MFC2_massFlow=""
+        MFC2_pressure="" MFC2_temp="" MFC3_massFlow="" MFC3_pressure=""
+        MFC3_temp="" MFC4_massFlow="" MFC4_pressure="" MFC4_temp=""
+        humidity="34.6" temperature="26.1"/>
+</olfactoryArena>

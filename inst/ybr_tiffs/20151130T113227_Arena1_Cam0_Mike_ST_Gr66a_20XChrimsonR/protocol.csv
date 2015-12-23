@@ -1,0 +1,5 @@
+step, Mode(0==pause), LED 1, LED 2, LED 3, LED 4, CHR_intesity(0-100), pulseWidth(1~30000ms), pulsePeriod(1~30000ms), PulseNum, offTime(0-30000ms),LED_delay(0-120s), iterationNum, Valve 1, Valve 2, Valve 3, Valve 4, valve_delay(Sec), valve_on_time(Sec), duration(Sec), Video, Video Name
+1, 1, 0000, 0000, 1111, 1111, 0, 1000, 1000, 1, 0, 0, 30, 1, 1, 1, 1, 0, 30, 30, 1, Test
+2, 1, 0100, 1000, 1111, 1111, 20, 1000, 1000, 1, 0, 0, 30, 1, 1, 1, 1, 0, 30, 30, 1, Test
+3, 1, 0000, 0000, 1111, 1111, 0, 1000, 1000, 1, 0, 0, 30, 1, 1, 1, 1, 0, 30, 30, 1, Test
+4, 1, 1000, 0100, 1111, 1111, 20, 1000, 1000, 1, 0, 0, 30, 1, 1, 1, 1, 0, 30, 30, 1, Test

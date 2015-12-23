@@ -1,0 +1,10 @@
+736298.4808825000 , start step 1.
+736298.4809101621 , start camera recording.
+736298.4812569097 , start step 2.
+736298.4812574653 , start running the LED pulse in the step 2.
+736298.4816039468 , stop running the LED pulse in the step 2.
+736298.4816039468 , start step 3.
+736298.4819499884 , start step 4.
+736298.4819505671 , start running the LED pulse in the step 4.
+736298.4822962848 , stop running the LED pulse in the step 4.
+736298.4823503587 , stop camera recording 
