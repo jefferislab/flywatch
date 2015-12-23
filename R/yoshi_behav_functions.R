@@ -20,7 +20,10 @@ read_ybr_tiff<-function(f, all=TRUE, as.is=FALSE, ...) {
     l=suppressWarnings(tiff::readTIFF(f, all=all, as.is=as.is, ...))
     class(l)=c('ybr_raw', class(l))
     l
-  }
+  } else if(inherits(f, 'ybr_raw')) {
+    f
+  } else stop("Sorry, I don't recognise this\n", f,
+              "\nas a path or in memory tiff data!")
 }
 
 #' Read xy positions from a single behaviour summary file
