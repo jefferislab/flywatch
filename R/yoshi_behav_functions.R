@@ -129,7 +129,7 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 #' @param lights A length 2 or more vector defining the lights on/off times for
 #'   the experiment (in seconds).
 #' @param lightcol The colour to use to plot the lights on epochs
-#' @param ... Additional arguments to \code{plot}
+#' @param ... Additional arguments to \code{plot.ts}
 #' @family ybr-displacement
 #' @export
 #' @seealso \code{\link[stats]{filter}}

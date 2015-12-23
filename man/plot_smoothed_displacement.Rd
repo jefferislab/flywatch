@@ -24,7 +24,7 @@ the experiment (in seconds).}
 
 \item{lightcol}{The colour to use to plot the lights on epochs}
 
-\item{...}{Additional arguments to \code{plot}}
+\item{...}{Additional arguments to \code{plot.ts}}
 }
 \description{
 Plot smoothed displacement estimate
