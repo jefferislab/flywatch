@@ -4,9 +4,9 @@
 \alias{plot_smoothed_displacement}
 \title{Plot smoothed displacement estimate}
 \usage{
-plot_smoothed_displacement(xy, filter = 1, sides = 1,
-  randts = isTRUE(!filter), lights = c(on1 = 30, off1 = 60, on2 = 90, off2 =
-  120), lightcol = rgb(1, 0, 0, alpha = 0.3), ...)
+plot_smoothed_displacement(xy, filter = 1, sides = 1, randts = FALSE,
+  lights = c(on1 = 30, off1 = 60, on2 = 90, off2 = 120), lightcol = rgb(1,
+  0, 0, alpha = 0.3), ...)
 }
 \arguments{
 \item{xy}{List of xy locations per frame produced by
@@ -36,7 +36,9 @@ Plot smoothed displacement estimate
 \details{
 This plot includes an optional smoothed randomised time series which
   is made by randomly permuting the timepoints in the main time series and
-  then applying the same smoothing filter.
+  then applying the same smoothing filter. If you want this time series to be
+  reliably the same pseudorandom series for publication purposes you may need
+  to see the random seed (see \code{\link[base]{set.seed}})
 }
 \seealso{
 \code{\link[stats]{filter}}

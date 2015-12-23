@@ -122,7 +122,9 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 #'
 #' @details This plot includes an optional smoothed randomised time series which
 #'   is made by randomly permuting the timepoints in the main time series and
-#'   then applying the same smoothing filter.
+#'   then applying the same smoothing filter. If you want this time series to be
+#'   reliably the same pseudorandom series for publication purposes you may need
+#'   to see the random seed (see \code{\link[base]{set.seed}})
 #'
 #' @inheritParams ybr_raw_displacements
 #' @param filter \emph{Either} the width in seconds of a simple smoothing filter
@@ -142,7 +144,7 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 #' @seealso \code{\link[stats]{filter}}
 #'   tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
 #'   plot_smoothed_displacement(tiffdf$tiff[1])
-plot_smoothed_displacement<-function(xy, filter=1, sides=1, randts=isTRUE(!filter),
+plot_smoothed_displacement<-function(xy, filter=1, sides=1, randts=FALSE,
                                      lights=c(on1=30, off1=60, on2=90, off2=120),
                                      lightcol=rgb(1,0,0,alpha=.3), ...){
   mxy=ybr_median_displacement(xy)
@@ -151,12 +153,13 @@ plot_smoothed_displacement<-function(xy, filter=1, sides=1, randts=isTRUE(!filte
     f=if(length(filter)==1) {
       rep(deltat(mxy)/filter, filter/deltat(mxy))
     } else filter
+    orig_mxy=mxy
     mxy=stats::filter(mxy, f, sides=sides)
   }
   plot(mxy, ylab='median displacement per frame', ...)
 
   if(randts) {
-    rand_ts=ts(sample(mxy), start=start(mxy), deltat = deltat(mxy))
+    rand_ts=ts(sample(orig_mxy), start=start(orig_mxy), deltat = deltat(orig_mxy))
     if(!isTRUE(!filter))
       rand_ts=stats::filter(rand_ts, f)
     lines(rand_ts, col='red')
@@ -167,6 +170,11 @@ plot_smoothed_displacement<-function(xy, filter=1, sides=1, randts=isTRUE(!filte
        par("usr")[4], col=lightcol, border = NA)
 }
 
+smoothed_ybr_plot<-function(x, filter=1, sides=1,
+                            lights=c(on1=30, off1=60, on2=90, off2=120),
+                            lightcol=rgb(1,0,0,alpha=.3), ...){
+
+}
 #' Find all the Yoshi behaviour tiffs in a directory hierarchy
 #'
 #' @inheritParams base::list.files
