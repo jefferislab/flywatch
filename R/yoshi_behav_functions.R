@@ -131,13 +131,17 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 #' @export
 #' @seealso \code{\link[stats]{filter}}
 plot_smoothed_displacement<-function(xy, filter=1,
+plot_smoothed_displacement<-function(xy, filter=1, sides=1,
                                      lights=c(on1=30, off1=60, on2=90, off2=120),
                                      lightcol=rgb(1,0,0,alpha=.3), ...){
   mxy=ybr_median_displacement(xy)
+  # computer filter if required
+  f=if(length(filter)==1) {
+    rep(deltat(mxy)/filter, filter/deltat(mxy))
+  } else filter
 
-  f=rep(deltat(mxy)/filter, filter/deltat(mxy))
-  sm_mxy=stats::filter(mxy, f)
-  plot(sm_mxy, ...)
+  sm_mxy=stats::filter(mxy, f, sides=sides)
+  plot(sm_mxy, ylab='median displacement per frame', ...)
 
   rand_ts=ts(sample(mxy), start=start(mxy), deltat = deltat(mxy))
   lines(stats::filter(rand_ts, f), col='red')
