@@ -120,12 +120,19 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 
 #' Plot smoothed displacement estimate
 #'
+#' @details This plot includes an optional smoothed randomised time series which
+#'   is made by randomly permuting the timepoints in the main time series and
+#'   then applying the same smoothing filter.
+#'
 #' @inheritParams ybr_raw_displacements
 #' @param filter \emph{Either} the width in seconds of a simple smoothing filter
-#'   \emph{or} a filter defined according to \code{\link[stats]{filter}}.
+#'   \emph{or} a filter defined according to \code{\link[stats]{filter}}. The
+#'   signalling value of \code{filter=F} suppresses any filtering.
 #' @param sides Whether the filter is causal i.e. for past values only (the
 #'   default) or centered around lag=0. See \code{\link[stats]{filter}} for
 #'   details.
+#' @param randts Whether to include a randomised version of the time series as a
+#'   second plot. Default to true if data are being filtered
 #' @param lights A length 2 or more vector defining the lights on/off times for
 #'   the experiment (in seconds).
 #' @param lightcol The colour to use to plot the lights on epochs
@@ -133,22 +140,28 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 #' @family ybr-displacement
 #' @export
 #' @seealso \code{\link[stats]{filter}}
-#' tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
-#' plot_smoothed_displacement(tiffdf$tiff[1])
-plot_smoothed_displacement<-function(xy, filter=1, sides=1,
+#'   tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
+#'   plot_smoothed_displacement(tiffdf$tiff[1])
+plot_smoothed_displacement<-function(xy, filter=1, sides=1, randts=isTRUE(!filter),
                                      lights=c(on1=30, off1=60, on2=90, off2=120),
                                      lightcol=rgb(1,0,0,alpha=.3), ...){
   mxy=ybr_median_displacement(xy)
   # computer filter if required
-  f=if(length(filter)==1) {
-    rep(deltat(mxy)/filter, filter/deltat(mxy))
-  } else filter
+  if(!isTRUE(!filter)){
+    f=if(length(filter)==1) {
+      rep(deltat(mxy)/filter, filter/deltat(mxy))
+    } else filter
+    mxy=stats::filter(mxy, f, sides=sides)
+  }
+  plot(mxy, ylab='median displacement per frame', ...)
 
-  sm_mxy=stats::filter(mxy, f, sides=sides)
-  plot(sm_mxy, ylab='median displacement per frame', ...)
+  if(randts) {
+    rand_ts=ts(sample(mxy), start=start(mxy), deltat = deltat(mxy))
+    if(!isTRUE(!filter))
+      rand_ts=stats::filter(rand_ts, f)
+    lines(rand_ts, col='red')
+  }
 
-  rand_ts=ts(sample(mxy), start=start(mxy), deltat = deltat(mxy))
-  lines(stats::filter(rand_ts, f), col='red')
   onidxs=seq.int(from=1, to=length(lights), by=2)
   rect(lights[onidxs], par("usr")[3], lights[onidxs+1],
        par("usr")[4], col=lightcol, border = NA)

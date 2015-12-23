@@ -4,20 +4,24 @@
 \alias{plot_smoothed_displacement}
 \title{Plot smoothed displacement estimate}
 \usage{
-plot_smoothed_displacement(xy, filter = 1, sides = 1, randts = TRUE,
-  lights = c(on1 = 30, off1 = 60, on2 = 90, off2 = 120), lightcol = rgb(1,
-  0, 0, alpha = 0.3), ...)
+plot_smoothed_displacement(xy, filter = 1, sides = 1,
+  randts = isTRUE(!filter), lights = c(on1 = 30, off1 = 60, on2 = 90, off2 =
+  120), lightcol = rgb(1, 0, 0, alpha = 0.3), ...)
 }
 \arguments{
 \item{xy}{List of xy locations per frame produced by
 \code{\link{read_ybr_xy}} \emph{or} raw TIFF data or path to TIFF file.}
 
 \item{filter}{\emph{Either} the width in seconds of a simple smoothing filter
-\emph{or} a filter defined according to \code{\link[stats]{filter}}.}
+\emph{or} a filter defined according to \code{\link[stats]{filter}}. The
+signalling value of \code{filter=F} suppresses any filtering.}
 
 \item{sides}{Whether the filter is causal i.e. for past values only (the
 default) or centered around lag=0. See \code{\link[stats]{filter}} for
 details.}
+
+\item{randts}{Whether to include a randomised version of the time series as a
+second plot. Default to true if data are being filtered}
 
 \item{lights}{A length 2 or more vector defining the lights on/off times for
 the experiment (in seconds).}
@@ -29,8 +33,15 @@ the experiment (in seconds).}
 \description{
 Plot smoothed displacement estimate
 }
+\details{
+This plot includes an optional smoothed randomised time series which
+  is made by randomly permuting the timepoints in the main time series and
+  then applying the same smoothing filter.
+}
 \seealso{
 \code{\link[stats]{filter}}
+  tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
+  plot_smoothed_displacement(tiffdf$tiff[1])
 
 Other ybr-displacement: \code{\link{ybr_median_displacement}};
   \code{\link{ybr_raw_displacements}}
