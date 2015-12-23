@@ -16,8 +16,8 @@
 #' @family read_ybr
 #' @seealso \code{\link[tiff]{readTIFF}}
 read_ybr_tiff<-function(f, all=TRUE, as.is=FALSE, ...) {
-  if(!is.character(f)) f else {
-    l=tiff::readTIFF(f, all=all, as.is=as.is, ...)
+  if(is.character(f)) {
+    l=suppressWarnings(tiff::readTIFF(f, all=all, as.is=as.is, ...))
     class(l)=c('ybr_raw', class(l))
     l
   }
