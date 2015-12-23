@@ -130,7 +130,8 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 #' @family ybr-displacement
 #' @export
 #' @seealso \code{\link[stats]{filter}}
-plot_smoothed_displacement<-function(xy, filter=1,
+#' tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
+#' plot_smoothed_displacement(tiffdf$tiff[1])
 plot_smoothed_displacement<-function(xy, filter=1, sides=1,
                                      lights=c(on1=30, off1=60, on2=90, off2=120),
                                      lightcol=rgb(1,0,0,alpha=.3), ...){
