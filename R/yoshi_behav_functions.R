@@ -2,7 +2,7 @@
 
 #' read xy data from a single behaviour summary file
 read_ybr_xy<-function(f) {
-  rawd=readTIFF(f, all=TRUE, as.is=FALSE)
+  rawd=tiff::readTIFF(f, all=TRUE, as.is=FALSE)
   lapply(rawd, function(x) t(x[2:3,which(x[2,]>0)]))
 }
 
@@ -14,7 +14,7 @@ read_ybr_xy<-function(f) {
 #' some_summ=read_ybr_summary("some.tif")
 #' plot(some_summ[,c(1,2,7)])
 read_ybr_summary<-function(f, ncols=26, start=0, deltat=1/30, ...) {
-  rawd=readTIFF(f, all=TRUE, as.is=FALSE)
+  rawd=tiff::readTIFF(f, all=TRUE, as.is=FALSE)
   d=as.data.frame(t(sapply(rawd, "[",1, 1:ncols)))
   colnames(d)[1]="nResults"
   colnames(d)[2]="PIn"
@@ -75,8 +75,8 @@ plot_smoothed_displacement<-function(xy, filterwidth=1, lights=c(30,60,90,120),
 
 summarise_tifs<-function(path="."){
   all_tifs=dir(path=path,pattern="tif$", recursive=T)
-  timestamps=str_extract(dirname(all_tifs),"201[0-9]{5}T[0-9]{6}")
-  ptimestamps=parse_date_time(timestamps,"YmdHMS")
-  geno=str_match(dirname(all_tifs),"_([^_]+)_20X")[,2]
+  timestamps=stringr::str_extract(dirname(all_tifs),"201[0-9]{5}T[0-9]{6}")
+  ptimestamps=lubridate::parse_date_time(timestamps,"YmdHMS")
+  geno=stringr::str_match(dirname(all_tifs),"_([^_]+)_20X")[,2]
   data.frame(tif=all_tifs,geno=geno, time=ptimestamps, stringsAsFactors = F)
 }
