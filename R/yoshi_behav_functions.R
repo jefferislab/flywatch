@@ -123,6 +123,9 @@ ybr_median_displacement<-function(xy, start=0, frequency=30){
 #' @inheritParams ybr_raw_displacements
 #' @param filter \emph{Either} the width in seconds of a simple smoothing filter
 #'   \emph{or} a filter defined according to \code{\link[stats]{filter}}.
+#' @param sides Whether the filter is causal i.e. for past values only (the
+#'   default) or centered around lag=0. See \code{\link[stats]{filter}} for
+#'   details.
 #' @param lights A length 2 or more vector defining the lights on/off times for
 #'   the experiment (in seconds).
 #' @param lightcol The colour to use to plot the lights on epochs

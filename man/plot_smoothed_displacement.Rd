@@ -4,8 +4,9 @@
 \alias{plot_smoothed_displacement}
 \title{Plot smoothed displacement estimate}
 \usage{
-plot_smoothed_displacement(xy, filter = 1, lights = c(on1 = 30, off1 = 60,
-  on2 = 90, off2 = 120), lightcol = rgb(1, 0, 0, alpha = 0.3), ...)
+plot_smoothed_displacement(xy, filter = 1, sides = 1, randts = TRUE,
+  lights = c(on1 = 30, off1 = 60, on2 = 90, off2 = 120), lightcol = rgb(1,
+  0, 0, alpha = 0.3), ...)
 }
 \arguments{
 \item{xy}{List of xy locations per frame produced by
@@ -13,6 +14,10 @@ plot_smoothed_displacement(xy, filter = 1, lights = c(on1 = 30, off1 = 60,
 
 \item{filter}{\emph{Either} the width in seconds of a simple smoothing filter
 \emph{or} a filter defined according to \code{\link[stats]{filter}}.}
+
+\item{sides}{Whether the filter is causal i.e. for past values only (the
+default) or centered around lag=0. See \code{\link[stats]{filter}} for
+details.}
 
 \item{lights}{A length 2 or more vector defining the lights on/off times for
 the experiment (in seconds).}
