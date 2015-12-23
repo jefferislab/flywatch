@@ -145,7 +145,7 @@ plot_smoothed_displacement<-function(xy, filter=1,
 
 #' Find all the Yoshi behaviour tiffs in a directory hierarchy
 #'
-#' @inheritParams list.files
+#' @inheritParams base::list.files
 #' @return A data.frame containing information about the identified tiffs
 #' @export
 #' @family read_ybr
@@ -154,15 +154,18 @@ plot_smoothed_displacement<-function(xy, filter=1,
 #' tiffdf=find_ybr_tiffs("/path/to/my/flydata")
 #' for(i in 1:nrow(tiffdf)){
 #'   intiff=tiffdf[i,'tiff']
-#'   outpdf=paste0(tools::file_path_sans_ext(basename(intiff)),'.pdf')
+#'   outpdf=paste0(basename(dirname(intiff)),'.pdf')
 #'   pdf(outpdf)
-#'   plot_smoothed_displacement()
+#'   plot_smoothed_displacement(intiff)
+#'   dev.off()
+#'   cat(".")
 #' }
 #' }
-find_ybr_tiffs<-function(path=".", recursive=TRUE){
-  all_tiffs=dir(path=path, pattern="\\.tif$", recursive=recursive)
-  timestamps=stringr::str_extract(dirname(all_tifs),"201[0-9]{5}T[0-9]{6}")
+find_ybr_tiffs<-function(path=".", recursive=TRUE, full.names=TRUE){
+  all_tiffs=dir(path=path, pattern="\\.tif$", recursive=recursive,
+                full.names=full.names)
+  timestamps=stringr::str_extract(dirname(all_tiffs),"201[0-9]{5}T[0-9]{6}")
   ptimestamps=lubridate::parse_date_time(timestamps,"YmdHMS")
-  geno=stringr::str_match(dirname(all_tifs),"_([^_]+)_20X")[,2]
-  data.frame(tiff=all_tifs, geno=geno, time=ptimestamps, stringsAsFactors = F)
+  geno=stringr::str_match(dirname(all_tiffs),"_([^_]+)_20X")[,2]
+  data.frame(tiff=all_tiffs, geno=geno, time=ptimestamps, stringsAsFactors = F)
 }

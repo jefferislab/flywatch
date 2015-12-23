@@ -17,7 +17,8 @@ eventually to \code{\link[tiff]{readTIFF}}.}
 Read xy positions from a single behaviour summary file
 }
 \seealso{
-Other read_ybr: \code{\link{read_ybr_summary}};
+Other read_ybr: \code{\link{find_ybr_tiffs}};
+  \code{\link{read_ybr_summary}};
   \code{\link{read_ybr_tiff}}
 }
 

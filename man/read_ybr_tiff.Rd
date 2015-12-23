@@ -31,7 +31,7 @@ Low level function to read in raw data from a Yoshi behaviour
 \seealso{
 \code{\link[tiff]{readTIFF}}
 
-Other read_ybr: \code{\link{read_ybr_summary}};
-  \code{\link{read_ybr_xy}}
+Other read_ybr: \code{\link{find_ybr_tiffs}};
+  \code{\link{read_ybr_summary}}; \code{\link{read_ybr_xy}}
 }
 

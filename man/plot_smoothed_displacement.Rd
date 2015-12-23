@@ -27,7 +27,7 @@ Plot smoothed displacement estimate
 \seealso{
 \code{\link[stats]{filter}}
 
-Other ybr.displacement: \code{\link{ybr_median_displacement}};
+Other ybr-displacement: \code{\link{ybr_median_displacement}};
   \code{\link{ybr_raw_displacements}}
 }
 

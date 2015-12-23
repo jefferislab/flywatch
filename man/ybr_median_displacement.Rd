@@ -21,7 +21,7 @@ time series
 Median displacement between nearest neighbour flies in sequential frames
 }
 \seealso{
-Other ybr.displacement: \code{\link{plot_smoothed_displacement}};
+Other ybr-displacement: \code{\link{plot_smoothed_displacement}};
   \code{\link{ybr_raw_displacements}}
 }
 
