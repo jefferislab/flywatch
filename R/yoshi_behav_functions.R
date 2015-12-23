@@ -1,20 +1,65 @@
-# Greg's little attempt a processing yoshi's behaviour tiffs
+# Code to process Yoshi's behaviour TIFFs
 
-#' read xy data from a single behaviour summary file
-read_ybr_xy<-function(f) {
-  rawd=tiff::readTIFF(f, all=TRUE, as.is=FALSE)
-  lapply(rawd, function(x) t(x[2:3,which(x[2,]>0)]))
+#' Read in one of Yoshi's behaviour TIFF summary files
+#'
+#' @description Low level function to read in raw data from a Yoshi behaviour
+#'   summary TIFF file. You can use this to customise how the TIFF file is read
+#'   in \emph{or} if you want to extract multiple kinds of information from the
+#'   same TIFF file using different functions.
+#'
+#' @param f Path to a TIFF file on disk \bold{or} the data from a TIFF that has
+#'   previously been read into R.
+#' @param ... Additional arguments passed to \code{\link[tiff]{readTIFF}}
+#' @inheritParams tiff::readTIFF
+#' @return list of TIFF slices with extra class \code{ybr_raw}
+#' @export
+#' @family read_ybr
+#' @seealso \code{\link[tiff]{readTIFF}}
+read_ybr_tiff<-function(f, all=TRUE, as.is=FALSE, ...) {
+  if(!is.character(f)) f else {
+    l=tiff::readTIFF(f, all=all, as.is=as.is, ...)
+    class(l)=c('ybr_raw', class(l))
+    l
+  }
 }
 
-#' Read the summary values (inc PI) from first row of a
-#' yoshi behaviour tiff and return a multi timeseries
-#' object
+#' Read xy positions from a single behaviour summary file
+#'
+#' @param f Path to a TIFF file on disk \bold{or} the data from a TIFF that has
+#'   previously been read into R
+#' @param ... Additional arguments passed to \code{\link{read_ybr_tiff}} or
+#'   eventually to \code{\link[tiff]{readTIFF}}.
+#' @family read_ybr
+#' @export
+read_ybr_xy<-function(f, ...) {
+  if(inherits(f, 'ybr_xy')) return(f)
+  rawd=read_ybr_tiff(f, ...)
+  l=lapply(rawd, function(x) t(x[2:3,which(x[2,]>0)]))
+  class(l)=c("ybr_xy")
+  l
+}
+
+#' Read the summary values from yoshi behaviour TIFF
+#'
+#' @param start Time of the first observation
+#' @param frequency Frequency (i.e. frame rate) for the behavioural observations
+#' @param ... Additional arguments passed to \code{\link[stats]{ts}}.
+#' @inheritParams read_ybr_xy
+#'
+#' @return a multi timeseries (\code{\link[stats]{ts}}) object containing 26
+#'   columns reporting frame by frame summary statistics.
 #'
 #' @examples
+#' \dontrun{
 #' some_summ=read_ybr_summary("some.tif")
 #' plot(some_summ[,c(1,2,7)])
-read_ybr_summary<-function(f, ncols=26, start=0, deltat=1/30, ...) {
-  rawd=tiff::readTIFF(f, all=TRUE, as.is=FALSE)
+#' }
+#' @family read_ybr
+#' @seealso \code{\link[stats]{ts}}
+#' @export
+read_ybr_summary<-function(f, start=0, frequency=30, ...) {
+  rawd=read_ybr_tiff(f)
+  ncols=26
   d=as.data.frame(t(sapply(rawd, "[",1, 1:ncols)))
   colnames(d)[1]="nResults"
   colnames(d)[2]="PIn"
@@ -33,13 +78,21 @@ read_ybr_summary<-function(f, ncols=26, start=0, deltat=1/30, ...) {
   colnames(d)[24]="DistanceFromBorder.mu"
   colnames(d)[25]="DistanceFromBorder.sd"
   colnames(d)[26]="FractionOfFliesinChoiceZone"
-  ts(d, start=start, deltat=deltat, ...)
+  stats::ts(d, start=start, frequency=frequency, ...)
 }
 
-#' calculate the raw displacements between nearest neighbour flies
-#' in sequential
+#' Raw displacements between nearest neighbour flies in sequential frames
 #'
-calc_raw_displacements<-function(xy){
+#' Each frame may have a different number of "flies". So all we do is report for
+#' each frame \code{n}  the nearest neighbour distance to objects in frame
+#' \code{n+1}. For each frame there will therefore be as many distances are
+#' there are recognised flies.
+#' @param xy List of xy locations per frame produced by
+#'   \code{\link{read_ybr_xy}} \emph{or} raw TIFF data or path to TIFF file.
+#' @export
+#' @family ybr-displacement
+ybr_raw_displacements<-function(xy){
+  xy=read_ybr_xy(xy)
   distres=list()
   for(f in seq_along(xy)[-1]){
     # find difference in position
@@ -49,28 +102,45 @@ calc_raw_displacements<-function(xy){
   distres
 }
 
-median_displacement<-function(xy, deltat=1/30){
-  dd=calc_raw_displacements(xy)
+#' Median displacement between nearest neighbour flies in sequential frames
+#'
+#' @inheritParams ybr_raw_displacements
+#' @inheritParams read_ybr_summary
+#' @return time series
+#' @export
+#' @family ybr-displacement
+ybr_median_displacement<-function(xy, start=0, frequency=30){
+  dd=ybr_raw_displacements(xy)
   md=sapply(dd, median)
-  ts(md,start = 0, deltat = deltat)
+  ts(md, start = start, frequency = frequency)
 }
 
-plot_smoothed_displacement<-function(xy, filterwidth=1, lights=c(30,60,90,120),
+#' Plot smoothed displacement estimate
+#'
+#' @inheritParams ybr_raw_displacements
+#' @param filter \emph{Either} the width in seconds of a simple smoothing filter
+#'   \emph{or} a filter defined according to \code{\link[stats]{filter}}.
+#' @param lights A length 2 or more vector defining the lights on/off times for
+#'   the experiment (in seconds).
+#' @param lightcol The colour to use to plot the lights on epochs
+#' @param ... Additional arguments to \code{plot}
+#' @family ybr-displacement
+#' @export
+#' @seealso \code{\link[stats]{filter}}
+plot_smoothed_displacement<-function(xy, filter=1,
+                                     lights=c(on1=30, off1=60, on2=90, off2=120),
                                      lightcol=rgb(1,0,0,alpha=.3), ...){
-  if(is.character(xy)) xy=read_ybr_xy(xy)
-  mxy=median_displacement(xy)
+  mxy=ybr_median_displacement(xy)
 
-  f=rep(deltat(mxy)/filterwidth, filterwidth/deltat(mxy))
+  f=rep(deltat(mxy)/filter, filter/deltat(mxy))
   sm_mxy=stats::filter(mxy, f)
   plot(sm_mxy, ...)
 
   rand_ts=ts(sample(mxy), start=start(mxy), deltat = deltat(mxy))
   lines(stats::filter(rand_ts, f), col='red')
-  rect(lights[1], par("usr")[3], lights[2],
+  onidxs=seq.int(from=1, to=length(lights), by=2)
+  rect(lights[onidxs], par("usr")[3], lights[onidxs+1],
        par("usr")[4], col=lightcol, border = NA)
-  rect(lights[3], par("usr")[3], lights[4],
-       par("usr")[4], col=lightcol, border = NA)
-
 }
 
 summarise_tifs<-function(path="."){
