@@ -1,0 +1,10 @@
+Package: flywatch
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1
+Date: 2015-12-23
+Author: Gregory Jefferis
+Maintainer: "Gregory Jefferis <jefferis@gmail.com> [aut, cre]"
+Description: More about what it does (maybe more than one line)
+License: GPL-3
+LazyData: TRUE
