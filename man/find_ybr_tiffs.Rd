@@ -25,7 +25,10 @@ A data.frame containing information about the identified tiffs
 Find all the Yoshi behaviour tiffs in a directory hierarchy
 }
 \examples{
+find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
+
 \dontrun{
+## Make some plots for all the experiments in a directory
 tiffdf=find_ybr_tiffs("/path/to/my/flydata")
 for(i in 1:nrow(tiffdf)){
   intiff=tiffdf[i,'tiff']

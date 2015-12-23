@@ -150,7 +150,10 @@ plot_smoothed_displacement<-function(xy, filter=1,
 #' @export
 #' @family read_ybr
 #' @examples
+#' find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
+#'
 #' \dontrun{
+#' ## Make some plots for all the experiments in a directory
 #' tiffdf=find_ybr_tiffs("/path/to/my/flydata")
 #' for(i in 1:nrow(tiffdf)){
 #'   intiff=tiffdf[i,'tiff']
