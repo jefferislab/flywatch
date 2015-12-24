@@ -10,3 +10,4 @@ Description: For the time being this is focussed on Yoshi Aso's four quadrant
 License: GPL-3
 LazyData: TRUE
 Imports: tiff, nabor, stringr, lubridate, stats
+BugReports: https://github.com/jefferislab/flywatch/issues

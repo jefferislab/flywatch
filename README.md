@@ -38,3 +38,9 @@ example("plot_smoothed_displacement")
 
 Note: Windows users need [Rtools](http://www.murdoch-sutherland.com/Rtools/) to 
 install with devtools.
+
+## Bugs, Feature Requests
+If it doesn't work or is missing a feature you can check if anyone else has 
+complained and file an issue at github
+
+* https://github.com/jefferislab/flywatch/issues
