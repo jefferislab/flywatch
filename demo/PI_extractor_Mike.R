@@ -70,8 +70,8 @@ ggsave(filename = "mean_allgenotypes.png", g, path=".")
 PI_df<-cbind(cbind(seconds= index,as.data.frame(meanPI))
              ,as.data.frame(semPI))
 
-#Plot everything with the empty control.
-for(i in 1:length(ugenotypes)+1) {
+#Plot everything with the empty control, cut the Y-axis at .5
+for(i in 2:(length(ugenotypes))) {
   g<-ggplot(data = PI_df,aes(x=seconds))
   g<-g+geom_line(aes(y=PI_df[,i], color=names(PI_df)[i]))
   g<-g+geom_line(aes(y=Empty, color="Empty"))
@@ -88,15 +88,54 @@ for(i in 1:length(ugenotypes)+1) {
   ggsave(filename = filename, plot=g, path=".")
 }
 
-#Single PI value, tweak the window width to calculate an appropriate 
-# PI. Yoshi uses last 5sec. 
-singlePI<-function(df=meanPI, w1s=45, w1e=60, w2s=105, w2e=120) {
-        m<-data.frame(cbind(seconds= index,as.data.frame(meanPI)))
-        m1<-colMeans(m[m$seconds>=w1s & m$seconds<=w1e ,])[-1]
-        m2<-colMeans(m[m$seconds>=w2s & m$seconds<=w2e ,])[-1]
-        colMeans(rbind(-1*m1,m2))
+
+#Function to calculate the single-value mean from a desired window of a vector. 
+#The stimulation windows are 30-60sec and 90-120sec. Yoshi uses last 5 seconds.
+singlePI<-function(PIseries, w1s=55, w1e=60, w2s=115, w2e=120) {
+  m<-data.frame(cbind(seconds= c(1:3588)/30,as.data.frame(PIseries)))
+  m1<-colMeans(m[m$seconds>=w1s & m$seconds<=w1e ,])[-1]
+  m2<-colMeans(m[m$seconds>=w2s & m$seconds<=w2e ,])[-1]
+  colMeans(rbind(-1*m1,m2))
 }
-singlePI()
+
+#Function to run singlePI through each row in a matrix. Note first equalise frames using 
+#code above. 
+mat.singlePI<-function(x) apply(x, 1, singlePI)
+
+#Run mat.singlePI() through all elements of the list 
+all.singlePI<-lapply(totalPI, mat.singlePI) 
+ 
+#Calculate the mean of each genotype under the specified window and get a summary
+all.singlePI.means<-sapply(all.singlePI, mean)
+summary(all.singlePI.means)
+
+#Calculate the SEM of each genotype under the specified window
+sem<-function(x) sqrt(var(x)/length(x))
+all.singlePI.sem<-sapply(all.singlePI, sem)
+
+#Convert these to simple dataframes and start plotting. Note to use reorder 
+#function to organise the graph as ggplot2 doesn't care about arranged dfs
+all.singlePI.df<-data.frame(Genotype=names(all.singlePI.means)
+                            ,meanPI=unname(all.singlePI.means)
+                            , sem=unname(all.singlePI.sem))
+Empty<-filter(all.singlePI.df, Genotype=="Empty")
+L989<-filter(all.singlePI.df, Genotype=="L989")
+g<-ggplot(data=all.singlePI.df, aes(x=reorder(Genotype, meanPI)
+                              , y=meanPI))
+g<-g+geom_point(stat = "identity", size=2, alpha=.75)
+g<-g+geom_point(data=Empty, color="magenta")
+g<-g+geom_point(data=L989, color="green")
+g<-g+geom_hline(yintercept = Empty$meanPI)
+g<-g+geom_errorbar(aes(ymin=meanPI-sem, ymax=meanPI+sem))
+g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
+g
+
+
+
+
+
+
+g<-g+geom_point(data=)
 
 
 
