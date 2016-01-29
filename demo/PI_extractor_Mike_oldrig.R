@@ -1,3 +1,6 @@
+#This version of the PI extraction  code is optimised for the older rig and in this case is looking 
+# specifcally at the iPN line versus empty control 
+
 #Note you will need to exclude data with n=1 and change finalframe variable and index variable 
 #if you end up using data from the old rig (different frame rate).
 #Set the working directory and load up the required packages and functions
@@ -17,7 +20,7 @@ dir<-list.files(pattern=".tif$", recursive=TRUE)
 
 #Find the different genotypes by pulling out all the genotype data from TIFF filenames
 codes<-strsplit(dir, "_")
-genotypes<-sapply(codes, "[", 6)
+genotypes<-sapply(codes, "[", 2)
 dir2<-data.frame(Tiffs=dir, line=genotypes)
 ugenotypes<-unique(genotypes)
 print("These are the genotypes to be analysed. Please check for naming errors:");print(ugenotypes)
@@ -29,6 +32,7 @@ names(totalPI)<-ugenotypes
 for(i in 1:length(ugenotypes)) {
   files<-grep(paste0("_", ugenotypes[i]), 
               dir, value=TRUE, fixed=TRUE)
+  if (length(files)==1) next
   for(j in 1:length(files)) {
     data<-readTIFF(source = files[j], all=TRUE, as.is=FALSE) 
     totalPI[[i]]<-rbind(totalPI[[i]], PIext(data))
@@ -38,7 +42,7 @@ for(i in 1:length(ugenotypes)) {
 #A function to equalise frames at the end so I can 
 # easily make dataframes. The number depends on the arena.  
 colGet<-function(mat, finalframe) mat[,1:finalframe]
-totalPI<-lapply(totalPI, colGet, finalframe=3588)
+totalPI<-lapply(totalPI, colGet, finalframe=3642)
 
 #Read out the means of each genotype and give a list 
 meanPI<-vector("list", length=length(ugenotypes))
@@ -54,20 +58,8 @@ for(i in 1:length(ugenotypes)) {
   semPI[[i]]<- sqrt(varsPI[[i]]/n[i])
 }
 
-#Plot just the means of all genotypes together on the same plot using ggplot2
-index<-c(1:3588)/30 #This is the framerate from the camerasettings.json file
-meltPI<-melt(meanPI)
-meltPI<-cbind(meltPI, index)
-names(meltPI)<-c("PI", "Genotype", "seconds")
-g<-ggplot(data = meltPI, aes(x = seconds))
-g<-g+geom_line(mapping = aes(y=PI, color=Genotype))
-g<-g+geom_rect(xmax=60, xmin=30, ymax=0, ymin=-1, alpha=0.002, fill="red")
-g<-g+geom_rect(xmax=120, xmin=90, ymax=1, ymin=0, alpha=0.002, fill="red")
-g<-g+coord_cartesian(xlim = c(0, 120), ylim=c(-1,1), expand=FALSE) 
-g<-g+labs(x="Time (Seconds)", y="PI",title="20XUAS-ChrimsonR") #Titles
-ggsave(filename = "mean_allgenotypes.png", g, path=".")
-
 #Convert everything to one df for ggplot2.
+index<-c(1:3642)/30 #This is the framerate from the camerasettings.json file
 PI_df<-cbind(cbind(seconds= index,as.data.frame(meanPI))
              ,as.data.frame(semPI))
 
@@ -75,11 +67,11 @@ PI_df<-cbind(cbind(seconds= index,as.data.frame(meanPI))
 for(i in 2:(length(ugenotypes)+1)) {
   g<-ggplot(data = PI_df,aes(x=seconds))
   g<-g+geom_line(aes(y=PI_df[,i], color=names(PI_df)[i]))
-  g<-g+geom_line(aes(y=Empty, color="Empty"))
+  g<-g+geom_line(aes(y=MB83C, color="MB83C"))
   g<-g+geom_ribbon(aes(ymin=PI_df[,i]-PI_df[,i+length(ugenotypes)], 
                        ymax=PI_df[,i]+PI_df[,i+length(ugenotypes)] )
                    , alpha=.3)
-  g<-g+geom_ribbon(aes(ymin=Empty-Emptysem, ymax=Empty+Emptysem), alpha=.3)
+  g<-g+geom_ribbon(aes(ymin=MB83C-MB83Csem, ymax=MB83C+MB83Csem), alpha=.3)
   g<-g+geom_rect(xmax=60, xmin=30, ymax=0, ymin=-1, alpha=0.002, fill="red")
   g<-g+geom_rect(xmax=120, xmin=90, ymax=1, ymin=0, alpha=0.002, fill="red")
   g<-g+coord_cartesian(xlim = c(0, 120), ylim=c(-1,1),expand=FALSE) 
@@ -105,7 +97,7 @@ mat.singlePI<-function(x) apply(x, 1, singlePI)
 
 #Run mat.singlePI() through all elements of the list 
 all.singlePI<-lapply(totalPI, mat.singlePI) 
- 
+
 #Calculate the mean of each genotype under the specified window and get a summary
 all.singlePI.means<-sapply(all.singlePI, mean)
 summary(all.singlePI.means)
@@ -124,7 +116,7 @@ L989<-filter(all.singlePI.df, Genotype=="L989")
 
 #Plot as points with sem
 g<-ggplot(data=all.singlePI.df, aes(x=reorder(Genotype, meanPI)
-                              , y=meanPI))
+                                    , y=meanPI))
 g<-g+geom_point(stat = "identity", size=2, alpha=.75)
 g<-g+geom_point(data=Empty, color="magenta")
 g<-g+geom_point(data=L989, color="green")
@@ -137,11 +129,10 @@ all.singlePI.df_clean<-all.singlePI.df[(-1)*c(2, 5:8, 18, 19, 50, 46,33),]
 
 #Plot cleaned data
 g<-ggplot(data=all.singlePI.df_clean, aes(x=reorder(Genotype, meanPI)
-                                    , y=meanPI))
+                                          , y=meanPI))
 g<-g+geom_point(stat = "identity", size=3)
 g<-g+geom_hline(yintercept = Empty$meanPI)
 g<-g+geom_errorbar(aes(ymin=meanPI-sem, ymax=meanPI+sem))
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
 g<-g+labs(x="Genotype", y="mean PI (5sec window) with SEM",title="20XUAS-ChrimsonR") #Titles
 g
-
