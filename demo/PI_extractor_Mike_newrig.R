@@ -102,7 +102,6 @@ singlePI<-function(PIseries, w1s=55, w1e=60, w2s=115, w2e=120) {
 #Function to run singlePI through each row in a matrix. Note first equalise frames using 
 #code above. 
 mat.singlePI<-function(x) apply(x, 1, singlePI)
-
 #Run mat.singlePI() through all elements of the list 
 all.singlePI<-lapply(totalPI, mat.singlePI) 
  
@@ -132,6 +131,7 @@ g<-g+geom_hline(yintercept = Empty$meanPI)
 g<-g+geom_errorbar(aes(ymin=meanPI-sem, ymax=meanPI+sem))
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
 g
+
 #To do: remove Paavo's stuff, MB83C errors, empsps. Do this properly with grep
 all.singlePI.df_clean<-all.singlePI.df[(-1)*c(2, 5:8, 18, 19, 50, 46,33),]
 
@@ -144,4 +144,24 @@ g<-g+geom_errorbar(aes(ymin=meanPI-sem, ymax=meanPI+sem))
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
 g<-g+labs(x="Genotype", y="mean PI (5sec window) with SEM",title="20XUAS-ChrimsonR") #Titles
 g
+
+#Turn all.singlePI into a tidy dataframe and plot the data as boxplots
+all.singlePI.melt<-melt(all.singlePI)
+names(all.singlePI.melt)<-c("PI", "Genotype")
+g<-ggplot(data=all.singlePI.melt, aes(x=reorder(Genotype, PI), y=PI))
+g<-g+geom_boxplot(aes(fill=Genotype))
+g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
+g<-g+labs(x="Genotype", y="mean PI (5sec window) with SEM",title="20XUAS-ChrimsonR") #Titles
+g<-g+theme(legend.position="none")
+g
+
+#Lets run some statistics on the data. First a Kruskal-Wallis test
+#or maybe better yet a Mood's Median test?
+all.singlePI<-all.singlePI[(-1)*c(2, 5:8, 18, 19, 50, 46,33)] #get rid of Paavo's lines
+kruskal.test(all.singlePI)
+#Clear differences so run along each and compare with M-W U test to make p-value vector
+#Need to run along each element in the all.singlePI list 
+
+
+
 
