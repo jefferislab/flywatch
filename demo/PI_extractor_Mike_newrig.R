@@ -1,11 +1,15 @@
 #Note you will need to exclude data with n=1 and change finalframe variable and index variable 
 #if you end up using data from the old rig (different frame rate).
+#Need to clean up older variables, objects and functions! 
 #Set the working directory and load up the required packages and functions
 library(tiff)
 library(rmngb) 
 library(ggplot2)
 library(reshape2)
 library(dplyr)
+library(xlsx)
+library(PMCMR)
+library(car)
 
 PIext<- function(data) {
   s<-matrix(ncol=2, byrow=TRUE, data=c(1,2))
@@ -38,7 +42,7 @@ for(i in 1:length(ugenotypes)) {
 #A function to equalise frames at the end so I can 
 # easily make dataframes. The number depends on the arena.  
 colGet<-function(mat, finalframe) mat[,1:finalframe]
-totalPI<-lapply(totalPI, colGet, finalframe=3588)
+totalPI<-lapply(totalPI, colGet, finalframe=3601)
 
 #Read out the means of each genotype and give a list 
 meanPI<-vector("list", length=length(ugenotypes))
@@ -55,7 +59,7 @@ for(i in 1:length(ugenotypes)) {
 }
 
 #Plot just the means of all genotypes together on the same plot using ggplot2
-index<-c(1:3588)/30 #This is the framerate from the camerasettings.json file
+index<-c(1:3601)/30 #This is the framerate from the camerasettings.json file
 meltPI<-melt(meanPI)
 meltPI<-cbind(meltPI, index)
 names(meltPI)<-c("PI", "Genotype", "seconds")
@@ -71,7 +75,7 @@ ggsave(filename = "mean_allgenotypes.png", g, path=".")
 PI_df<-cbind(cbind(seconds= index,as.data.frame(meanPI))
              ,as.data.frame(semPI))
 
-#Plot everything with the empty control, cut the Y-axis at .5
+#Plot everything with the empty control, 
 for(i in 2:(length(ugenotypes)+1)) {
   g<-ggplot(data = PI_df,aes(x=seconds))
   g<-g+geom_line(aes(y=PI_df[,i], color=names(PI_df)[i]))
@@ -93,7 +97,7 @@ for(i in 2:(length(ugenotypes)+1)) {
 #Function to calculate the single-value mean from a desired window of a vector. 
 #The stimulation windows are 30-60sec and 90-120sec. Yoshi uses last 5 seconds.
 singlePI<-function(PIseries, w1s=55, w1e=60, w2s=115, w2e=120) {
-  m<-data.frame(cbind(seconds= c(1:3588)/30,as.data.frame(PIseries)))
+  m<-data.frame(cbind(seconds= c(1:3601)/30,as.data.frame(PIseries)))
   m1<-colMeans(m[m$seconds>=w1s & m$seconds<=w1e ,])[-1]
   m2<-colMeans(m[m$seconds>=w2s & m$seconds<=w2e ,])[-1]
   colMeans(rbind(-1*m1,m2))
@@ -121,16 +125,6 @@ all.singlePI.df<-data.frame(Genotype=names(all.singlePI.means)
 Empty<-filter(all.singlePI.df, Genotype=="Empty")
 L989<-filter(all.singlePI.df, Genotype=="L989")
 
-#Plot as points with sem
-g<-ggplot(data=all.singlePI.df, aes(x=reorder(Genotype, meanPI)
-                              , y=meanPI))
-g<-g+geom_point(stat = "identity", size=2, alpha=.75)
-g<-g+geom_point(data=Empty, color="magenta")
-g<-g+geom_point(data=L989, color="green")
-g<-g+geom_hline(yintercept = Empty$meanPI)
-g<-g+geom_errorbar(aes(ymin=meanPI-sem, ymax=meanPI+sem))
-g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
-g
 
 #To do: remove Paavo's stuff, MB83C errors, empsps. Do this properly with grep
 all.singlePI.df_clean<-all.singlePI.df[(-1)*c(2, 5:8, 18, 19, 50, 46,33),]
@@ -155,13 +149,40 @@ g<-g+labs(x="Genotype", y="mean PI (5sec window) with SEM",title="20XUAS-Chrimso
 g<-g+theme(legend.position="none")
 g
 
-#Lets run some statistics on the data. First a Kruskal-Wallis test
-#or maybe better yet a Mood's Median test?
-all.singlePI<-all.singlePI[(-1)*c(2, 5:8, 18, 19, 50, 46,33)] #get rid of Paavo's lines
-kruskal.test(all.singlePI)
-#Clear differences so run along each and compare with M-W U test to make p-value vector
-#Need to run along each element in the all.singlePI list 
+#Remove Paavo's GAL4 lines from my analysis, melt and rename the df
+all.singlePI<-all.singlePI[(-1)*c(2, 5:8, 18, 19, 50, 46,33)] 
+all.singlePI.melt<-melt(all.singlePI)
+names(all.singlePI.melt)<-c("PI", "Genotype")
+
+#First run KW test. Then most people run loads of Mann-Whitney tests and correct the p-values. 
+#This is not ideal because the ranks used by K-W is not the same as M-W. Use Dunn's test with a control 
+# and fdr, instead as a sort of "non-parametric Dunnett's test".
+
+leveneTest(PI~Genotype, data = all.singlePI.melt) #Test for heteroskedasticity which would violate assumptions
+kruskal.test(all.singlePI)  #First a Kruskal-Wallis omnibus test, implying significant differences
+dunn.test.control(x = all.singlePI.melt$PI, g= as.factor(all.singlePI.melt$Genotype), p.adjust.method = "fdr") 
+pvals<-as.data.frame(dunn.test.control(x = all.singlePI.melt$PI,
+                                       g= as.factor(all.singlePI.melt$Genotype), p.adjust.method = "fdr")$p.value)
+table(pvals<0.05) #Print out how many statistically significant differences we found 
+
+pvals<-cbind(dimnames(pvals)[[1]],as.data.frame(pvals)) #Some fudging to switch the genotypes to a column
+rownames(pvals)<-NULL #unname function doesn't work here. 
+names(pvals)<-c("Genotype", "pvalue_v_Empty")
+pvals<-merge(x = pvals, y =  all.singlePI.melt, by = "Genotype", all=TRUE)
+pvals$Valence<-ifelse(pvals$pvalue_v_Empty<0.05, "Significant", "Not Significant")
+
+#Plot these statistics onto our graph
+g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI), y=PI))
+g<-g+geom_boxplot(aes(fill=Valence))
+g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
+g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
+g
 
 
-
-
+#Examine and plot the distribution of the clusters/cell-types examined
+LineSum<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)
+LineSum.tab<-as.data.frame(table(LineSum$Splitlines_cluster..Cluster))
+names(LineSum.tab)<-c("Cell-Type", "Frequency")
+LineSum.tab<-arrange(LineSum.tab, Frequency)
+barplot(height=LineSum.tab[,2], names.arg=LineSum.tab[,1], col="steel blue",cex.names=.6,las=2
+        , ylab="Frequency")

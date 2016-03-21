@@ -44,6 +44,8 @@ for(i in 1:length(ugenotypes)) {
 colGet<-function(mat, finalframe) mat[,1:finalframe]
 totalPI<-lapply(totalPI, colGet, finalframe=3642)
 
+
+
 #Read out the means of each genotype and give a list 
 meanPI<-vector("list", length=length(ugenotypes))
 names(meanPI)<-ugenotypes
@@ -85,7 +87,7 @@ for(i in 2:(length(ugenotypes)+1)) {
 #Function to calculate the single-value mean from a desired window of a vector. 
 #The stimulation windows are 30-60sec and 90-120sec. Yoshi uses last 5 seconds.
 singlePI<-function(PIseries, w1s=55, w1e=60, w2s=115, w2e=120) {
-  m<-data.frame(cbind(seconds= c(1:3588)/30,as.data.frame(PIseries)))
+  m<-data.frame(cbind(seconds= c(1:3642)/30,as.data.frame(PIseries)))
   m1<-colMeans(m[m$seconds>=w1s & m$seconds<=w1e ,])[-1]
   m2<-colMeans(m[m$seconds>=w2s & m$seconds<=w2e ,])[-1]
   colMeans(rbind(-1*m1,m2))
@@ -111,21 +113,9 @@ all.singlePI.sem<-sapply(all.singlePI, sem)
 all.singlePI.df<-data.frame(Genotype=names(all.singlePI.means)
                             ,meanPI=unname(all.singlePI.means)
                             , sem=unname(all.singlePI.sem))
-Empty<-filter(all.singlePI.df, Genotype=="Empty")
-L989<-filter(all.singlePI.df, Genotype=="L989")
 
-#Plot as points with sem
-g<-ggplot(data=all.singlePI.df, aes(x=reorder(Genotype, meanPI)
-                                    , y=meanPI))
-g<-g+geom_point(stat = "identity", size=2, alpha=.75)
-g<-g+geom_point(data=Empty, color="magenta")
-g<-g+geom_point(data=L989, color="green")
-g<-g+geom_hline(yintercept = Empty$meanPI)
-g<-g+geom_errorbar(aes(ymin=meanPI-sem, ymax=meanPI+sem))
-g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
-g
-#To do: remove Paavo's stuff, MB83C errors, empsps. Do this properly with grep
-all.singlePI.df_clean<-all.singlePI.df[(-1)*c(2, 5:8, 18, 19, 50, 46,33),]
+#Remove genotypes you do not want in final analysis
+all.singlePI.df_clean<-all.singlePI.df
 
 #Plot cleaned data
 g<-ggplot(data=all.singlePI.df_clean, aes(x=reorder(Genotype, meanPI)
@@ -134,5 +124,26 @@ g<-g+geom_point(stat = "identity", size=3)
 g<-g+geom_hline(yintercept = Empty$meanPI)
 g<-g+geom_errorbar(aes(ymin=meanPI-sem, ymax=meanPI+sem))
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
-g<-g+labs(x="Genotype", y="mean PI (5sec window) with SEM",title="20XUAS-ChrimsonR") #Titles
+g<-g+labs(x="Genotype", y="mean PI (5sec window) with SEM",title="") #Titles
 g
+
+#Turn all.singlePI into a tidy dataframe 
+all.singlePI.melt<-melt(all.singlePI[2:4])
+names(all.singlePI.melt)<-c("PI", "Genotype")
+g<-ggplot(data=all.singlePI.melt, aes(x=reorder(Genotype, PI), y=PI))
+g<-g+geom_boxplot(aes(fill=Genotype))
+g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, size=15)) #horizontal text
+g<-g+labs(x="", y="PI (5sec window)")
+g<-g+theme(legend.position="none")
+g
+
+g<-ggplot(data=all.singlePI.melt, aes(x=reorder(Genotype, PI), y=PI))
+g<-g+geom_boxplot(aes(fill=Genotype))
+g<-g+theme(axis.ticks = element_blank(), axis.text.x = element_blank())
+g<-g+labs(x="", y="PI (5sec window)")
+g
+
+#Do a wilcoxon test 
+all.singlePI.melt_clean<-filter(all.singlePI.melt, Genotype=="MB83C" | Genotype=="SS01113")
+all.singlePI.melt_clean$Genotype<-as.factor(all.singlePI.melt_clean$Genotype)
+wilcox.test(PI ~ Genotype,data=all.singlePI.melt_clean)
