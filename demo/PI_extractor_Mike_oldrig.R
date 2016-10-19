@@ -139,13 +139,11 @@ g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, size=15)) #horizont
 g<-g+labs(x="", y="PI (5sec window)")
 g<-g+theme(legend.position="none")
 g
-#Remove unwanted genotypes 
-all.singlePI.melt2 <-filter(all.singlePI.melt, Genotype=="MB83C" | Genotype=="SS01113")
-g<-ggplot(data=all.singlePI.melt2, aes(x=reorder(Genotype, PI), y=PI))
+
+g<-ggplot(data=all.singlePI.melt, aes(x=reorder(Genotype, PI), y=PI))
 g<-g+geom_boxplot(aes(fill=Genotype))
 g<-g+theme(axis.ticks = element_blank(), axis.text.x = element_blank())
-g<-g+labs(x="", y="Performance Index")
-g<-g+coord_cartesian(xlim=c(.5,2.5), ylim=c(-1,1), expand=FALSE) 
+g<-g+labs(x="", y="PI (5sec window)")
 g
 
 #Do a wilcoxon test 
