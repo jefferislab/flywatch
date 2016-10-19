@@ -176,6 +176,7 @@ g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI), y=PI))
 g<-g+geom_boxplot(aes(fill=Valence))
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
+g<-g+theme(legend.title=element_blank())
 g
 
 
@@ -186,3 +187,20 @@ names(LineSum.tab)<-c("Cell-Type", "Frequency")
 LineSum.tab<-arrange(LineSum.tab, Frequency)
 barplot(height=LineSum.tab[,2], names.arg=LineSum.tab[,1], col="steel blue",cex.names=.6,las=2
         , ylab="Frequency")
+
+#Plot the lines and cell-types that were statistically significant 
+hits<-melt(unique(as.character(pvals[pvals$pvalue_v_Empty<.05,]$Genotype))[-20])
+names(hits)<-"LineCode"
+hits<-merge(x = hits, y = LineSum[,c(1, 5)], by="LineCode", all.x=TRUE
+            ,all.y = FALSE)
+hits<-arrange(.data = hits, Splitlines_cluster..Cluster) #No multiple cell types
+hits$signif<-1
+hits<-hits[c(-18,-19),] #Remove the controls
+names(hits)<-c("LineCode", "Cell-Type", "signif")
+hits2<-merge(x = LineSum.tab, y = hits, by = "Cell-Type", all.x = TRUE)
+hits2<-arrange(hits2, Frequency)
+barplot(height=hits2[,2], names.arg=hits2[,1], col="steel blue",cex.names=.6,las=2
+        , ylab="Frequency")
+barplot(height=hits2[,4], col="orange",cex.names=.6,las=2
+        , ylab="Frequency", add=TRUE)
+
