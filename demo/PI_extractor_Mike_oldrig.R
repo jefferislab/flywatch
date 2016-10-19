@@ -9,6 +9,9 @@ library(rmngb)
 library(ggplot2)
 library(reshape2)
 library(dplyr)
+library(PMCMR)
+library(car)
+library(FSA)
 
 PIext<- function(data) {
   s<-matrix(ncol=2, byrow=TRUE, data=c(1,2))
@@ -149,3 +152,11 @@ g
 all.singlePI.melt_clean<-filter(all.singlePI.melt, Genotype=="MB83C" | Genotype=="SS01113")
 all.singlePI.melt_clean$Genotype<-as.factor(all.singlePI.melt_clean$Genotype)
 wilcox.test(PI ~ Genotype,data=all.singlePI.melt_clean)
+
+#For the 37G11 data, run a KW test followed by a dunn's test
+leveneTest(PI~Genotype, data = all.singlePI.melt) #Test for heteroskedasticity which would violate assumptions
+kruskal.test(all.singlePI.melt)  #First a Kruskal-Wallis omnibus test, implying significant differences
+dunnTest(PI~Genotype, data = all.singlePI.melt,method="bonferroni") #All-v-All from the FSA package
+
+
+
