@@ -135,34 +135,11 @@ g<-g+theme(legend.title=element_blank())
 g
 ggsave(filename = "PI_boxplot.pdf", plot=g, path=".")
 
-#ANALYSIS III: Significance by line cell-type. FIX THIS!
-#Examine and plot the distribution of the clusters/cell-types examined
-LineSum<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)
-LineSum.tab<-as.data.frame(table(LineSum$Splitlines_cluster..Cluster))
-names(LineSum.tab)<-c("Cell-Type", "Frequency")
-LineSum.tab<-arrange(LineSum.tab, Frequency)
-barplot(height=LineSum.tab[,2], names.arg=LineSum.tab[,1], col="steel blue",cex.names=.6,las=2
-        , ylab="Frequency")
-#Plot the lines and cell-types that were statistically significant
-hits<-melt(unique(as.character(pvals[pvals$pvalue_v_Empty<.05,]$Genotype))[-20])
-names(hits)<-"LineCode"
-hits<-merge(x = hits, y = LineSum[,c(1, 5)], by="LineCode", all.x=TRUE
-            ,all.y = FALSE)
-hits<-arrange(.data = hits, Splitlines_cluster..Cluster) #No multiple cell types
-hits$signif<-1
-hits<-hits[c(-18,-19),] #Remove the controls
-names(hits)<-c("LineCode", "Cell-Type", "signif")
-hits2<-merge(x = LineSum.tab, y = hits, by = "Cell-Type", all.x = TRUE)
-hits2<-arrange(hits2, Frequency)
-barplot(height=hits2[,2], names.arg=hits2[,1], col="steel blue",cex.names=.6,las=2
-        , ylab="Frequency")
-barplot(height=hits2[,4], col="orange",cex.names=.6,las=2
-        , ylab="Frequency", add=TRUE)
-
-#ANALYSIS IV: Combining data from both screening sessions
+#ANALYSIS III: Combining data from both screening sessions, plotting both and analysing repeats
 Dec2015<-loadRData("/Volumes/Samsung_T3/Behaviour_data/Mike_newrig_Dec2015_screen/data.rda")
-#Dec2015<-filter(Dec2015, Genotype!="Empty")
+Dec2015<-filter(Dec2015, Genotype!="Empty") #Bug in the DunnTest code, need to remove this to use EmptySp as control
 Sept2016<-loadRData("/Volumes/Samsung_T3/Behaviour_data/Mike_newrig_Sept2016_screen_incomplete/data.rda")
+all.data<-rbind(Dec2015,Sept2016)
 #Compare the repeated lines in the two screening sessions
 repeats<-c("L235", "L728", "L574", "L421", "L141", "L260", "L159", "L123")
 repeat.means.Dec2015<- subset(Dec2015, Genotype %in% repeats)
@@ -171,16 +148,22 @@ repeat.means.Dec2015<-aggregate(.data = repeat.means.Dec2015, x = repeat.means.D
 repeat.means.Sept2016<-subset(Sept2016, Genotype %in% repeats)
 repeat.means.Sept2016<-aggregate(.data = repeat.means.Sept2016, x = repeat.means.Sept2016$PI
                                 , by=list(repeat.means.Sept2016$Genotype),FUN =  mean)
-all.data<-rbind(Dec2015,Sept2016)
-all.data[all.data$Genotype=="EmptySp",]$Genotype<-"SplitEmpty"
-
-all.data<-arrange(all.data, desc(Genotype=="SplitEmpty"))
+t.test(x = repeat.means.Sept2016[,2]-repeat.means.Dec2015[,2]) #No significant difference between the repeats in 2015 and 2016
+#Compare and plot EmptySp and Empty
+controls<-filter(all.data, Genotype=="Empty" | Genotype=="EmptySp")
+kruskal.test(controls)  #Compare the two controls, pretty different
+g<-ggplot(data = controls, mapping = aes(x=Genotype, y=PI))
+g<-g+geom_boxplot(aes(fill=Genotype))
+g
+ggsave(filename = "PI_comparision_controls.pdf", plot=g, path=".")
+#Statistical tests on all the data, using either EmptySplit or Empty as the control
+all.data<-arrange(all.data, desc(Genotype=="EmptySp"))
 leveneTest(PI~Genotype, data = all.data) #Test for heteroskedasticity which would violate assumptions
 kruskal.test(all.data)  #First a Kruskal-Wallis omnibus test, implying significant differences
 dunn.test.control(x = all.data$PI, g= as.factor(all.data$Genotype), p.adjust.method = "fdr")
 pvals<-as.data.frame(dunn.test.control(x = all.data$PI,
                                        g= as.factor(all.data$Genotype), p.adjust.method = "fdr")$p.value)
-p<-0.15
+p<-0.10
 table(pvals<p) #Print out how many statistically significant differences we found
 pvals<-cbind(dimnames(pvals)[[1]],as.data.frame(pvals)) #Some fudging to switch the genotypes to a column
 rownames(pvals)<-NULL #unname function doesn't work here.
@@ -194,4 +177,32 @@ g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizo
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
 g<-g+theme(legend.title=element_blank())
 g
-ggsave(filename = "alldata.pdf", plot=g, path=".")
+ggsave(filename = "alldata_EmptySplitcontrol_FDR10.pdf", width=16
+       ,height =9 ,plot=g, path=".")
+
+#ANALYSIS IV: Significance by line cell-type. FIX THIS!
+#Examine and plot the distribution of the clusters/cell-types examined
+LineSum<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)[,c(1,3)]
+length(unique(LineSum[,2])) #Get the number of cell-types analysed
+LineSum.tab<-as.data.frame(table(LineSum$Clusters..Cluster))
+names(LineSum.tab)<-c("Cell-Type", "Frequency")
+LineSum.tab<-arrange(LineSum.tab, Frequency)
+barplot(height=LineSum.tab[,2], names.arg=LineSum.tab[,1], col="red",cex.names=.6,las=2
+        , ylab="Frequency")
+#Plot the lines and cell-types that were statistically significant
+hits<-melt(unique(as.character(pvals[pvals$pvalue_v_Empty<p,]$Genotype)))
+names(hits)<-"LineCode"
+hits<-merge(x = hits, y = LineSum, by="LineCode", all.x=TRUE
+            ,all.y = FALSE)
+hits.table<-as.data.frame(table(hits[,2]))
+names(hits.table)<-c("Cell-Type", "FreqHit")
+hits.merge<-merge(x=hits.table, y=LineSum.tab, by="Cell-Type", all=TRUE)
+hits.merge<-arrange(hits.merge, Frequency)
+barplot(height=hits.merge[,3], names.arg=LineSum.tab[,1], col="firebrick1",cex.names=.6,las=2
+        , ylab="Frequency")
+barplot(height=hits.merge[,2], names.arg=LineSum.tab[,1], col="deepskyblue1",cex.names=.6,las=2
+        , ylab="Frequency", add=TRUE)
+]
+
+
+
