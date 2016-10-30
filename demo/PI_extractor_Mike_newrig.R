@@ -81,11 +81,11 @@ PI_df<-cbind(cbind(seconds= index,as.data.frame(meanPI))
 for(i in 2:(length(ugenotypes)+1)) {
   g<-ggplot(data = PI_df,aes(x=seconds))
   g<-g+geom_line(aes(y=PI_df[,i], color=names(PI_df)[i]))
-  g<-g+geom_line(aes(y=Empty, color="Empty"))
+  g<-g+geom_line(aes(y=EmptySp, color="EmptySp"))
   g<-g+geom_ribbon(aes(ymin=PI_df[,i]-PI_df[,i+length(ugenotypes)],
                        ymax=PI_df[,i]+PI_df[,i+length(ugenotypes)] )
                    , alpha=.3)
-  g<-g+geom_ribbon(aes(ymin=Empty-Emptysem, ymax=Empty+Emptysem), alpha=.3)
+  g<-g+geom_ribbon(aes(ymin=EmptySp-EmptySpsem, ymax=EmptySp+EmptySpsem), alpha=.3)
   g<-g+geom_rect(xmax=60, xmin=30, ymax=0, ymin=-1, alpha=0.002, fill="red")
   g<-g+geom_rect(xmax=120, xmin=90, ymax=1, ymin=0, alpha=0.002, fill="red")
   g<-g+coord_cartesian(xlim = c(0, 120), ylim=c(-1,1),expand=FALSE)
@@ -108,14 +108,15 @@ mat.singlePI<-function(x) apply(x, 1, singlePI) #Function to run singlePI throug
 all.singlePI<-lapply(totalPI, mat.singlePI) #Run mat.singlePI() through all elements of the list
 all.singlePI.melt<-melt(all.singlePI)
 names(all.singlePI.melt)<-c("PI", "Genotype")
-all.singlePI.melt<-arrange(all.singlePI.melt, desc(Genotype=="Empty"))
+all.singlePI.melt<-arrange(all.singlePI.melt, desc(Genotype=="EmptySp"))
 save(all.singlePI.melt, file=paste0(getwd(),"/data.rda"))
 #Run the statistics
 leveneTest(PI~Genotype, data = all.singlePI.melt) #Test for heteroskedasticity which would violate assumptions
 SW.test<-function(x) {
    shapiro.test(x)$p.value
-} #Function to pull out the p-values
+}
 aggregate(x=all.singlePI.melt$PI, by = list(all.singlePI.melt$Genotype), FUN=SW.test)
+#Function to pull out the p-values
 kruskal.test(all.singlePI)  #First a Kruskal-Wallis omnibus test, implying significant differences
 dunn.test.control(x = all.singlePI.melt$PI, g= as.factor(all.singlePI.melt$Genotype), p.adjust.method = "fdr")
 pvals<-as.data.frame(dunn.test.control(x = all.singlePI.melt$PI,
@@ -133,13 +134,18 @@ g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizo
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
 g<-g+theme(legend.title=element_blank())
 g
-ggsave(filename = "PI_boxplot.pdf", plot=g, path=".")
+ggsave(filename = "PI_boxplot.pdf",
+       width=16 ,height =9, plot=g, path=".")
 
 #ANALYSIS III: Combining data from both screening sessions, plotting both and analysing repeats
+setwd("/Volumes/Samsung_T3/Behaviour_data")
 Dec2015<-loadRData("/Volumes/Samsung_T3/Behaviour_data/Mike_newrig_Dec2015_screen/data.rda")
 Dec2015<-filter(Dec2015, Genotype!="Empty") #Bug in the DunnTest code, need to remove this to use EmptySp as control
-Sept2016<-loadRData("/Volumes/Samsung_T3/Behaviour_data/Mike_newrig_Sept2016_screen_incomplete/data.rda")
+Sept2016<-loadRData("/Volumes/Samsung_T3/Behaviour_data/Mike_newrig_Sept2016_screen//data.rda")
 all.data<-rbind(Dec2015,Sept2016)
+#Remove unwanted samples
+all.data<-filter(all.data, Genotype!="test"| Genotype!="MB83c")
+all.data<-arrange(all.data, desc(Genotype=="EmptySp"))
 #Compare the repeated lines in the two screening sessions
 repeats<-c("L235", "L728", "L574", "L421", "L141", "L260", "L159", "L123")
 repeat.means.Dec2015<- subset(Dec2015, Genotype %in% repeats)
@@ -202,7 +208,7 @@ barplot(height=hits.merge[,3], names.arg=LineSum.tab[,1], col="firebrick1",cex.n
         , ylab="Frequency")
 barplot(height=hits.merge[,2], names.arg=LineSum.tab[,1], col="deepskyblue1",cex.names=.6,las=2
         , ylab="Frequency", add=TRUE)
-]
+
 
 
 
