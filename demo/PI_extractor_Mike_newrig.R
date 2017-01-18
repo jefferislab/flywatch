@@ -210,5 +210,22 @@ barplot(height=hits.merge[,2], names.arg=LineSum.tab[,1], col="deepskyblue1",cex
         , ylab="Frequency", add=TRUE)
 
 
+#ANALYSIS V: Comparing two different protocols
 
-
+#Sort through the directory and pull out the TIFFs, genotypes and protocols
+dir<-list.files(pattern="measurementsXY.tif$", recursive=TRUE) #Pull out the correct tif
+genotypes<-sapply(strsplit(dir, "_"), "[", 5)
+ugenotypes<-unique(genotypes)[-3]
+protocols<-unique(sapply(strsplit(dir, "_"), "[", 4))
+#Initialise and run the PIext function accross all genotypes. Will produce a list, each containing
+#vectors of the PI for each genotype
+totalPI<-vector("list", length = length(ugenotypes)*length(protocols))
+names(totalPI)<-as.vector(t(outer(protocols, ugenotypes, paste, sep="_")))
+for(i in 1:(length(ugenotypes)*length(protocols))) {
+  files<-grep(paste0("_", names(totalPI)[i]),
+              dir, value=TRUE, fixed=TRUE)
+  for(j in 1:length(files)) {
+    data<-readTIFF(source = files[j], all=TRUE, as.is=FALSE)
+    totalPI[[i]]<-rbind(totalPI[[i]], PIextract(data))
+  }
+}
