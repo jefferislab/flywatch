@@ -103,7 +103,7 @@ for(i in 1:length(ugenotypes)) {
   names(L)<-c("N", "value")
 
   #Perform the delta L calculation
-  deltaL<-((L-L0)/L)[,-1] #This is a df of all the single value differences in locomotion proxy. One for each experiment.
+  deltaL<-((L-L0)/L0)[,-1] #This is a df of all the single value differences in locomotion proxy. One for each experiment.
   deltaL<-data.frame(Genotype=ugenotypes[i], deltaL)
   locomotion_singleVal<-rbind(locomotion_singleVal, deltaL)
 }
