@@ -81,15 +81,15 @@ PI_df<-cbind(cbind(seconds= index,as.data.frame(meanPI))
 for(i in 2:(length(ugenotypes)+1)) {
   g<-ggplot(data = PI_df,aes(x=seconds))
   g<-g+geom_line(aes(y=PI_df[,i], color=names(PI_df)[i]))
-  g<-g+geom_line(aes(y=EmptySp, color="EmptySp"))
+  g<-g+geom_line(aes(y=empsp, color="empsp"))
   g<-g+geom_ribbon(aes(ymin=PI_df[,i]-PI_df[,i+length(ugenotypes)],
                        ymax=PI_df[,i]+PI_df[,i+length(ugenotypes)] )
                    , alpha=.3)
-  g<-g+geom_ribbon(aes(ymin=EmptySp-EmptySpsem, ymax=EmptySp+EmptySpsem), alpha=.3)
+  g<-g+geom_ribbon(aes(ymin=empsp-empspsem, ymax=empsp+empspsem), alpha=.3)
   g<-g+geom_rect(xmax=60, xmin=30, ymax=0, ymin=-1, alpha=0.002, fill="red")
   g<-g+geom_rect(xmax=120, xmin=90, ymax=1, ymin=0, alpha=0.002, fill="red")
   g<-g+coord_cartesian(xlim = c(0, 120), ylim=c(-1,1),expand=FALSE)
-  g<-g+labs(x="Time (Seconds)", y="PI",title="20XUAS-ChrimsonR")
+  g<-g+labs(x="Time (Seconds)", y="PI",title="20XUAS-csChrimson")
   g<-g+theme(legend.title=element_blank()) #Turn off the legend title
   filename<-paste0(names(PI_df[i]), "_meanPI.png")
   ggsave(filename = filename, plot=g, path=".")
@@ -109,6 +109,7 @@ all.singlePI<-lapply(totalPI, mat.singlePI) #Run mat.singlePI() through all elem
 all.singlePI.melt<-melt(all.singlePI)
 names(all.singlePI.melt)<-c("PI", "Genotype")
 all.singlePI.melt<-arrange(all.singlePI.melt, desc(Genotype=="EmptySp"))
+all.singlePI.melt<-filter(all.singlePI.melt,Genotype!="test")
 save(all.singlePI.melt, file=paste0(getwd(),"/data.rda"))
 #Run the statistics
 leveneTest(PI~Genotype, data = all.singlePI.melt) #Test for heteroskedasticity which would violate assumptions

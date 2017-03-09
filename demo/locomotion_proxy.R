@@ -109,7 +109,7 @@ for(i in 1:length(ugenotypes)) {
 }
 locomotion_singleVal<-arrange(locomotion_singleVal, desc(Genotype=="EmptySp"))
 locomotion_singleVal[,1]<-as.factor(as.character(locomotion_singleVal[,1])) #Reorganise the factor levels as dunn test function takes first level
-save(locomotion_singleVal, file=paste0(getwd(),"/locomotion_data.rda"))
+save(locomotion_singleVal, file=paste0(getwd(),"/locomotionproxy_data.rda"))
 
 
 #Determine significance and plot the data

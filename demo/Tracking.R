@@ -22,6 +22,22 @@ metric_extract<- function(data, fly) {
   sec<-(1:length(metric))/30
   data.frame(quadrant, metric, sec)
 }
+metric_extract2<- function(data, fly, metric=c("DistCenter", "DistBorder","DistNeigh", "CforLoco", "CTurning")) {
+  if(metric=="DistCenter") col<-13
+  if(metric=="DistBorder") col<-14
+  if(metric=="DistNeigh") col<-26
+  if(metric=="CforLoco") col<-30
+  if(metric=="CTurning") col<-31
+  metmatrix<-matrix(ncol=2, byrow=TRUE, data=c(col,fly))
+  quadmatrix<-matrix(ncol=2, byrow=TRUE, data=c(12,fly))
+
+
+
+  quadrant<-sapply(data, "[", quadmatrix) #pulls the quadrant position of the fly
+  metric<-sapply(data, "[", metmatrix)
+  sec<-(1:length(metric))/30
+  data.frame(quadrant, metric, sec)
+}
 #Functions to classify and average the metric across distinct quadrant positions for each fly.
 #Used on metric.list output.
 First30_perfly_mean<-function(df)  {
@@ -57,11 +73,12 @@ Mean_Of_Exp<-function(metric.list) {
 
 #First loop through the experiments by genotype
 dir<-list.files(pattern="TrackingResults.tif$", recursive=TRUE) #Pull out the correct tifs
-genotypes<-sapply(strsplit(dir, "_"), "[", 7)
+genotypes<-sapply(strsplit(dir, "_"), "[", 6)
 genotypes<-sapply(strsplit(genotypes, "/"), "[", 1)
 ugenotypes<-unique(genotypes)
 print("These are the genotypes to be analysed. Please check for naming errors:");print(ugenotypes)
 
+#PART I: Code to pull out a single metric for each fly.
 #Load data and run our functions for a given metric accross all flies of all experiments for each genotype
 metric.mean.per.exp<-data.frame()
 for(i in 1:length(ugenotypes)) {
@@ -81,16 +98,17 @@ for(i in 1:length(ugenotypes)) {
             names(metric.list)[k]<-paste0("Fly", k)
         }
         #So now we have metric.list, a list object that has our metric against seconds and quadrants
-        #for the whole experiment for all the flies.rbind it to the main output df for this experiment
+        #for the whole experiment for all the flies.Rbind the mean to the main output df for this experiment
         output<-Mean_Of_Exp(metric.list)
         output$Genotype<-ugenotypes[i]
         metric.mean.per.exp<-rbind(metric.mean.per.exp, output)
     }
 }
 
-#Calculate the single value deltaM/M of the metric
+#Calculate the single value deltaM/M of the metric. FIX THIS, eg values that increase will give
+#negative delta F/F!
 head(metric.mean.per.exp)
-metric.mean.per.exp<-mutate(metric.mean.per.exp, M=mean(c(Stim1, Stim2)))
+metric.mean.per.exp<-mutate(metric.mean.per.exp, M=((Stim1+Stim2)/2))
 metric.mean.per.exp<-mutate(metric.mean.per.exp, deltaM_M=(M-First30)/First30)
 metricSingleVal<-select(metric.mean.per.exp, Genotype, deltaM_M)
 
@@ -111,23 +129,99 @@ g<-g+labs(x="Genotype", y="deltaL",title="") #Titles
 g<-g+theme(legend.title=element_blank())
 g
 
+#PART II: Trialling out a way of pulling out all the metrics together and final output as a list of
+#metric.mean.per.exp dataframes.
+#Will need to loop through each of the major metrics
+DistCenter.mean.per.exp<-data.frame()
+DistBorder.mean.per.exp<-data.frame()
+DistNeigh.mean.per.exp<-data.frame()
+CforLoco.mean.per.exp<-data.frame()
+CTurning.mean.per.exp<-data.frame()
+for(i in 1:length(ugenotypes)) {
+  #First loop through the genotypes
+  files<-grep(paste0("_", ugenotypes[i])
+              ,dir, value=TRUE, fixed=TRUE)
+  #Loop through each experiment
+  for(j in 1:length(files))  {
+    data<-readTIFF(source = files[j], all=TRUE, as.is=FALSE)
+    MaxN<-max(sapply(data, "[", matrix(ncol=2, byrow=TRUE, data=c(1,1))))
+    metric.list.DistCenter<-list()
+    metric.list.DistBorder<-list()
+    metric.list.DistNeigh<-list()
+    metric.list.CforLoco<-list()
+    metric.list.CTurning<-list()
+    #Loop through each fly to extract the metric we want
+    for(k in 1:MaxN)   {
+      extract<-metric_extract2(data, k, metric = "DistCenter")
+      if(mean(extract$metric)==0) next #remove errors
+      metric.list.DistCenter[[k]]<-extract
+      names(metric.list.DistCenter)[k]<-paste0("Fly", k)
 
-#Trialling out a way of pulling out all the metrics together and final output as a list of
-#metric.mean.per.exp dataframes. Once analysis segment is done, can run all these in parallel
-metric_extract<- function(data, fly, metric=c("DistCenter", "DistBorder"
-                                              ,"DistNeigh", "CforLoco", "CTurning")) {
-  if(metric=="DistCenter") col<-13
-  if(metric=="DistBorder") col<-14
-  if(metric=="DistNeigh") col<-26
-  if(metric=="CforLoco") col<-30
-  if(metric=="CTurning") col<-31
-  metmatrix<-matrix(ncol=2, byrow=TRUE, data=c(col,fly))
-  quadmatrix<-matrix(ncol=2, byrow=TRUE, data=c(12,fly))
+      extract<-metric_extract2(data, k, metric = "DistBorder")
+      if(mean(extract$metric)==0) next #remove errors
+      metric.list.DistBorder[[k]]<-extract
+      names(metric.list.DistBorder)[k]<-paste0("Fly", k)
 
-  quadrant<-sapply(data, "[", quadmatrix) #pulls the quadrant position of the fly
-  metric<-sapply(data, "[", metmatrix)
-  sec<-(1:length(metric))/30
-  data.frame(quadrant, metric, sec)
+      extract<-metric_extract2(data, k, metric = "DistNeigh")
+      if(mean(extract$metric)==0) next #remove errors
+      metric.list.DistNeigh[[k]]<-extract
+      names(metric.list.DistNeigh)[k]<-paste0("Fly", k)
+
+      extract<-metric_extract2(data, k, metric = "CforLoco")
+      if(mean(extract$metric)==0) next #remove errors
+      metric.list.CforLoco[[k]]<-extract
+      names(metric.list.CforLoco)[k]<-paste0("Fly", k)
+
+      extract<-metric_extract2(data, k, metric = "CTurning")
+      if(mean(extract$metric)==0) next #remove errors
+      metric.list.CTurning[[k]]<-extract
+      names(metric.list.CTurning)[k]<-paste0("Fly", k)
+    }
+    #So now we have metric.list, a list object that has our metric against seconds and quadrants
+    #for the whole experiment for all the flies.Rbind the mean to the main output df for this experiment
+    outputDistCenter<-Mean_Of_Exp(metric.list.DistCenter)
+    outputDistCenter$Genotype<-ugenotypes[i]
+    DistCenter.mean.per.exp<-rbind(DistCenter.mean.per.exp, outputDistCenter)
+
+    outputDistBorder<-Mean_Of_Exp(metric.list.DistBorder)
+    outputDistBorder$Genotype<-ugenotypes[i]
+    DistBorder.mean.per.exp<-rbind(DistBorder.mean.per.exp, outputDistBorder)
+
+    outputDistNeigh<-Mean_Of_Exp(metric.list.DistNeigh)
+    outputDistNeigh$Genotype<-ugenotypes[i]
+    DistNeigh.mean.per.exp<-rbind(DistNeigh.mean.per.exp, outputDistNeigh)
+
+    outputCforLoco<-Mean_Of_Exp(metric.list.CforLoco)
+    outputCforLoco$Genotype<-ugenotypes[i]
+    CforLoco.mean.per.exp<-rbind(CforLoco.mean.per.exp, outputCforLoco)
+
+    outputCTurning<-Mean_Of_Exp(metric.list.CTurning)
+    outputCTurning$Genotype<-ugenotypes[i]
+    CTurning.mean.per.exp<-rbind(CTurning.mean.per.exp, outputCTurning)
+  }
 }
 
-#Will need to loop through and create a function to automate the plotting.
+#Combine all the mean metrics data into one list
+all.metrics<-list(DistCenter.mean.per.exp
+                  ,DistBorder.mean.per.exp,DistNeigh.mean.per.exp
+                  ,CforLoco.mean.per.exp, CTurning.mean.per.exp)
+names(all.metrics)<-c("DistCenter", "DistBorder","DistNeigh", "CforLoco", "CTurning")
+save(all.metrics, file = "Tracking_all.metrics.rda")
+
+#Calculate the different, CHECK THE DATA. ALSO will need to take absolute value of turning
+delta_metric<-function(df) {
+    df<-mutate(df, M=((Stim1+Stim2)/2))
+    df<-mutate(df, deltaM_M=(M-First30)/First30)
+    metricSingleVal<-select(metric.mean.per.exp, Genotype, deltaM_M)
+}#Calculate the single value deltaM/M of the metric. FIX THIS, eg values that increase will give
+#negative delta F/F!
+
+
+
+
+
+
+
+
+
+
