@@ -1,6 +1,4 @@
-#This is code to analyse output from Yoshi's Tracking macro. This is more complicated because it
-#tracks each individual fly and therefore requires a different kind of analysis (although you can
-# still pull out the PI with my old code)
+#Code to extract tracking data from the tif output of Yoshi's marco
 
 #Load up required packages and functions
 library(tiff)
@@ -8,20 +6,11 @@ library(dplyr)
 library(reshape2)
 library(PMCMR)
 library(ggplot2)
+library(car)
 
+#Set the control genotype
+control<-"empsp"
 
-#Function to extract a metric for a given fly throughout the exp
-metric_extract<- function(data, fly) {
-  #Here we will need to cycle through the columns
-  #(31,1) gives us cturning
-  metmatrix<-matrix(ncol=2, byrow=TRUE, data=c(31,fly))
-  quadmatrix<-matrix(ncol=2, byrow=TRUE, data=c(12,fly))
-
-  quadrant<-sapply(data, "[", quadmatrix) #pulls the quadrant position of the fly
-  metric<-sapply(data, "[", metmatrix)
-  sec<-(1:length(metric))/30
-  data.frame(quadrant, metric, sec)
-}
 metric_extract2<- function(data, fly, metric=c("DistCenter", "DistBorder","DistNeigh", "CforLoco", "CTurning")) {
   if(metric=="DistCenter") col<-13
   if(metric=="DistBorder") col<-14
@@ -30,16 +19,13 @@ metric_extract2<- function(data, fly, metric=c("DistCenter", "DistBorder","DistN
   if(metric=="CTurning") col<-31
   metmatrix<-matrix(ncol=2, byrow=TRUE, data=c(col,fly))
   quadmatrix<-matrix(ncol=2, byrow=TRUE, data=c(12,fly))
-
-
-
   quadrant<-sapply(data, "[", quadmatrix) #pulls the quadrant position of the fly
   metric<-sapply(data, "[", metmatrix)
   sec<-(1:length(metric))/30
   data.frame(quadrant, metric, sec)
 }
 #Functions to classify and average the metric across distinct quadrant positions for each fly.
-#Used on metric.list output.
+#Used on Mean_Of_Exp.
 First30_perfly_mean<-function(df)  {
   df<-filter(df, sec<=30) #Metric for all four quadrants before stimulation
   mean(df$metric, na.rm=TRUE)
@@ -54,8 +40,6 @@ Stim2_perfly_mean<-function(df)  {
   df<-filter(df, quadrant==1 | quadrant==4)
   mean(df$metric, na.rm=TRUE)
 } #Mean Metric for the first pair of stimulation quadrants
-#This function will run through the metric.list() object and extract the mean of the metric
-# for the whole experiment.
 Mean_Of_Exp<-function(metric.list) {
   #Pull the means of the metric from the metric.list for each stimulation period
   #and average by fly and then accross flies
@@ -70,68 +54,61 @@ Mean_Of_Exp<-function(metric.list) {
 
   data.frame(First30=First30meanperexp, Stim1=Stim1meanperexp, Stim2=Stim2meanperexp)
 }
+delta_metric<-function(df) {
+  df<-mutate(df, M=((Stim1+Stim2)/2))
+  df<-mutate(df, deltaM_M=(M-First30)/abs(First30))
+  metricSingleVal<-select(df, Genotype, deltaM_M)
+  metricSingleVal
+} #Calculate the delta metric value.
+calculate_significants<-function(dataframe, type=c("baseline", "deltametric"), p=.10){
+  #Calculate the significant cell-types and label them in the dataframe
+  #Uses a posthoc dunn's control test and 10% FDR
+  if(type=="baseline") {
+    pvals<-as.data.frame(dunn.test.control(x = dataframe$First30,
+                                           g= as.factor(dataframe$Genotype),
+                                           p.adjust.method = "fdr")$p.value)
+  }
+  if(type=="deltametric") {
+    pvals<-as.data.frame(dunn.test.control(x = dataframe$deltaM_M,
+                                           g= as.factor(dataframe$Genotype),
+                                           p.adjust.method = "fdr")$p.value)
+  }
+
+  pvals<-cbind(dimnames(pvals)[[1]],as.data.frame(pvals)) #Some fudging to switch the genotypes to a column
+  rownames(pvals)<-NULL #unname function doesn't work here.
+  names(pvals)<-c("Genotype", "pvalue_v_Empty")
+  pvals<-merge(x = pvals, y =  dataframe, by = "Genotype", all=TRUE)
+  pvals$Valence<-ifelse(pvals$pvalue_v_Empty<p, "Significant", "Not Significant")
+  pvals
+}
+signif_boxplot<-function(data=df, type=c("baseline", "deltametric")) {
+  #Plot the data as boxplots with the statistical significance
+
+  if(type=="baseline") {
+    g<-ggplot(data=data, aes(x=reorder(Genotype, First30), y=First30))
+    name<-paste0(metric, "_baseline.pdf")
+  }
+  if(type=="deltametric") {
+    g<-ggplot(data=data, aes(x=reorder(Genotype, deltaM_M), y=deltaM_M))
+    name<-paste0(metric, "_delta.pdf")
+  }
+  g<-g+geom_boxplot(aes(fill=Valence))
+  g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
+  g<-g+labs(x="Genotype", y="Performance Index",title=metric) #Titles
+  g<-g+theme(legend.title=element_blank())
+  g
+  ggsave(filename = name, width=16
+         ,height =9 ,plot=g, path=".")
+}
 
 #First loop through the experiments by genotype
 dir<-list.files(pattern="TrackingResults.tif$", recursive=TRUE) #Pull out the correct tifs
-genotypes<-sapply(strsplit(dir, "_"), "[", 6)
+genotypes<-sapply(strsplit(dir, "_"), "[", 7)
 genotypes<-sapply(strsplit(genotypes, "/"), "[", 1)
 ugenotypes<-unique(genotypes)
 print("These are the genotypes to be analysed. Please check for naming errors:");print(ugenotypes)
 
-#PART I: Code to pull out a single metric for each fly.
-#Load data and run our functions for a given metric accross all flies of all experiments for each genotype
-metric.mean.per.exp<-data.frame()
-for(i in 1:length(ugenotypes)) {
-    #First loop through the genotypes
-    files<-grep(paste0("_", ugenotypes[i])
-                ,dir, value=TRUE, fixed=TRUE)
-    #Loop through each experiment
-    for(j in 1:length(files))  {
-        data<-readTIFF(source = files[j], all=TRUE, as.is=FALSE)
-        MaxN<-max(sapply(data, "[", matrix(ncol=2, byrow=TRUE, data=c(1,1))))
-        metric.list<-list()
-        #Loop through each fly to extract the metric we want
-        for(k in 1:MaxN)   {
-            extract<-metric_extract(data, k)
-            if(mean(extract$metric)==0) next #remove errors
-            metric.list[[k]]<-extract
-            names(metric.list)[k]<-paste0("Fly", k)
-        }
-        #So now we have metric.list, a list object that has our metric against seconds and quadrants
-        #for the whole experiment for all the flies.Rbind the mean to the main output df for this experiment
-        output<-Mean_Of_Exp(metric.list)
-        output$Genotype<-ugenotypes[i]
-        metric.mean.per.exp<-rbind(metric.mean.per.exp, output)
-    }
-}
-
-#Calculate the single value deltaM/M of the metric. FIX THIS, eg values that increase will give
-#negative delta F/F!
-head(metric.mean.per.exp)
-metric.mean.per.exp<-mutate(metric.mean.per.exp, M=((Stim1+Stim2)/2))
-metric.mean.per.exp<-mutate(metric.mean.per.exp, deltaM_M=(M-First30)/First30)
-metricSingleVal<-select(metric.mean.per.exp, Genotype, deltaM_M)
-
-#Statistics on this melted dataframe
-pvals<-as.data.frame(dunn.test.control(x = metricSingleVal$deltaM_M,
-                                       g= as.factor(metricSingleVal$Genotype), p.adjust.method = "fdr")$p.value)
-pvals<-cbind(dimnames(pvals)[[1]],as.data.frame(pvals)) #Some fudging to switch the genotypes to a column
-rownames(pvals)<-NULL #unname function doesn't work here.
-names(pvals)<-c("Genotype", "pvalue_v_Empty")
-pvals<-merge(x = pvals, y =  metricSingleVal, by = "Genotype", all=TRUE)
-pvals$Valence<-ifelse(pvals$pvalue_v_Empty<0.1, "Significant", "Not Significant")
-
-#Plot the data as significant or not-significant
-g<-ggplot(data=pvals, aes(x=reorder(Genotype, deltaM_M), y=deltaM_M))
-g<-g+geom_boxplot(aes(fill=Valence))
-g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
-g<-g+labs(x="Genotype", y="deltaL",title="") #Titles
-g<-g+theme(legend.title=element_blank())
-g
-
-#PART II: Trialling out a way of pulling out all the metrics together and final output as a list of
-#metric.mean.per.exp dataframes.
-#Will need to loop through each of the major metrics
+#Extract the "per experiment" mean of each metric for all flies in desired quadrant and times.
 DistCenter.mean.per.exp<-data.frame()
 DistBorder.mean.per.exp<-data.frame()
 DistNeigh.mean.per.exp<-data.frame()
@@ -208,20 +185,28 @@ all.metrics<-list(DistCenter.mean.per.exp
 names(all.metrics)<-c("DistCenter", "DistBorder","DistNeigh", "CforLoco", "CTurning")
 save(all.metrics, file = "Tracking_all.metrics.rda")
 
-#Calculate the different, CHECK THE DATA. ALSO will need to take absolute value of turning
-delta_metric<-function(df) {
-    df<-mutate(df, M=((Stim1+Stim2)/2))
-    df<-mutate(df, deltaM_M=(M-First30)/First30)
-    metricSingleVal<-select(metric.mean.per.exp, Genotype, deltaM_M)
-}#Calculate the single value deltaM/M of the metric. FIX THIS, eg values that increase will give
-#negative delta F/F!
+#For each metric in the all.metrics list, calculate the baseline and delta metric
+#,run statistics and plot the graphs.
+for(i in 1:length(all.metrics)) {
+  metric<-names(all.metrics[i])
+  baseline<-select(all.metrics[[i]], Genotype, First30)
+  baseline<-arrange(baseline, desc(Genotype=="EmptySp"))
+  if(metric=="CTurning") {
+    baseline$First30<-abs(baseline$First30)
+  }
+  #Calculate the significant differences between the baselines and plot
+  pvals<-calculate_significants(baseline, type="baseline")
+  signif_boxplot(data=pvals,type="baseline" )
 
-
-
-
-
-
-
-
+  #Calculate the single value deltaM/M of the metric
+  deltam<-delta_metric(all.metrics[[i]])
+  deltam<-arrange(deltam, desc(Genotype=="EmptySp"))
+  if(metric=="CTurning") {
+    deltam$deltaM_M<-abs(deltam$deltaM_M)
+  }
+  #Calculate the significant differences for deltaM and plot
+  pvals<-calculate_significants(deltam, type="deltametric")
+  signif_boxplot(data=pvals,type="deltametric" )
+}
 
 
