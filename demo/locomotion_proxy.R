@@ -24,7 +24,6 @@ Q2Q3.locomotion<-function(data) {
   output<-sapply(data, "[", Q2Q3.locomotion)
   output
 }
-
 minimum.frames<-function(x) min(apply(X = x,1, length)) #Determine the final frame as there is variation
 frame.cut<-function(mat) mat[,1:finalframe]
 loadRData <- function(fileName){
@@ -62,17 +61,15 @@ for(i in 1:length(ugenotypes)) {
     Q2Q3.l[[i]]<-rbind(Q2Q3.l[[i]],Q2Q3.locomotion(data))
   }
 }
-#Fix the length of the frames for further analysis, just with locomotion for now
 
+#Fix the length of the frames for further analysis, just with locomotion for now
 finalframe<-min(melt(lapply(Q1Q4.l, FUN = minimum.frames))[,1])
 Q1Q4.l<-lapply(Q1Q4.l, frame.cut)
-
 finalframe<-min(melt(lapply(Q2Q3.l, FUN = minimum.frames))[,1])
 Q2Q3.l<-lapply(Q2Q3.l, frame.cut)
-
 index<-c(1:finalframe)/30 #This is the framerate from the camerasettings.json file
 
-#Locomoation is calculated as (L-L0)/L0. Note that Q3Q4 stimulation happens first!
+#Locomotion is calculated as (L-L0)/L0. Note that Q3Q4 stimulation happens first!
 single_loco<-function(x) {
   m<-data.frame(cbind(seconds= c(1:finalframe)/30,as.data.frame(x)))
   First30<-colMeans(m[m$seconds<=30 ,])[-1]
@@ -103,10 +100,10 @@ for(i in 1:length(ugenotypes)) {
   names(L)<-c("N", "value")
 
   #Perform the delta L calculation
-  deltaL<-((L-L0)/L0)[,-1] #This is a df of all the single value differences in locomotion proxy. One for each experiment.
+  deltaL<-((L-L0)/abs(L0))[,-1] #This is a df of all the single value differences in locomotion proxy. One for each experiment.
   deltaL<-data.frame(Genotype=ugenotypes[i], deltaL)
   locomotion_singleVal<-rbind(locomotion_singleVal, deltaL)
-}
+} #calculate deltaL
 locomotion_singleVal<-arrange(locomotion_singleVal, desc(Genotype=="EmptySp"))
 locomotion_singleVal[,1]<-as.factor(as.character(locomotion_singleVal[,1])) #Reorganise the factor levels as dunn test function takes first level
 save(locomotion_singleVal, file=paste0(getwd(),"/locomotionproxy_data.rda"))

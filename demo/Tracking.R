@@ -8,8 +8,9 @@ library(PMCMR)
 library(ggplot2)
 library(car)
 
+
 #Set the control genotype
-control<-"empsp"
+control<-"EmptySp"
 
 metric_extract2<- function(data, fly, metric=c("DistCenter", "DistBorder","DistNeigh", "CforLoco", "CTurning")) {
   if(metric=="DistCenter") col<-13
@@ -100,10 +101,15 @@ signif_boxplot<-function(data=df, type=c("baseline", "deltametric")) {
   ggsave(filename = name, width=16
          ,height =9 ,plot=g, path=".")
 }
+loadRData <- function(fileName){
+  #loads an RData file, and returns it
+  load(fileName)
+  get(ls()[ls() != "fileName"])
+}
 
 #First loop through the experiments by genotype
 dir<-list.files(pattern="TrackingResults.tif$", recursive=TRUE) #Pull out the correct tifs
-genotypes<-sapply(strsplit(dir, "_"), "[", 7)
+genotypes<-sapply(strsplit(dir, "_"), "[", 6)
 genotypes<-sapply(strsplit(genotypes, "/"), "[", 1)
 ugenotypes<-unique(genotypes)
 print("These are the genotypes to be analysed. Please check for naming errors:");print(ugenotypes)
@@ -209,4 +215,55 @@ for(i in 1:length(all.metrics)) {
   signif_boxplot(data=pvals,type="deltametric" )
 }
 
+#Combine the two screens for full analysis
+setwd("/Volumes/Data/BehaviourData")
+Dec2015<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/Tracking_all.metrics.rda")
+Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/Tracking_all.metrics.rda")
+merge_metric_lists<-function(x, y) {
+  output<-vector("list", 5)
+  names(output)<-names(x)
+  for(i in 1:length(x)){
+    output[[i]]<-rbind(x[[i]], y[[i]])
+  }
+  output
+} #Code to concancenate the two lists
+total.metrics<-merge_metric_lists(Dec2015,Sept2016)
+
+#Quality Control of the data
+remove_unwanted_lines<-function(df){
+ df<-filter(df, Genotype!= "11E08")
+ df<-filter(df, Genotype!= "53F04")
+ df<-filter(df, Genotype!= "empsp")
+ df<-filter(df, Genotype!= "Empty")
+ df<-filter(df, Genotype!= "MB83C")
+ df<-filter(df, Genotype!= "MB083C")
+ df
+  }
+total.metrics<-lapply(total.metrics, FUN = remove_unwanted_lines)
+#Calculate baseline, delta, stats and plot final graphs
+for(i in 1:length(total.metrics)) {
+  metric<-names(total.metrics[i])
+  baseline<-select(total.metrics[[i]], Genotype, First30)
+  baseline<-arrange(baseline, desc(Genotype=="EmptySp"))
+  if(metric=="CTurning") {
+    baseline$First30<-abs(baseline$First30)
+  }
+  #Calculate the significant differences between the baselines and plot
+  pvals<-calculate_significants(baseline, type="baseline")
+  signif_boxplot(data=pvals,type="baseline" )
+
+  #Calculate the single value deltaM/M of the metric
+  deltam<-delta_metric(total.metrics[[i]])
+  deltam<-arrange(deltam, desc(Genotype=="EmptySp"))
+  if(metric=="CTurning") {
+    deltam$deltaM_M<-abs(deltam$deltaM_M)
+  }
+  #Calculate the significant differences for deltaM and plot
+  pvals<-calculate_significants(deltam, type="deltametric")
+  signif_boxplot(data=pvals,type="deltametric" )
+}
+save(total.metrics, file = "Tracking_all.metrics.rda")
+
+
+#Fix the code to pull out PI also, code in significant cell-types
 
