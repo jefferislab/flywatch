@@ -213,7 +213,7 @@ all.singlePI.melt<-melt(all.singlePI)
 names(all.singlePI.melt)<-c("PI", "Genotype")
 all.singlePI.melt<-arrange(all.singlePI.melt, desc(Genotype=="EmptySp"))
 all.singlePI.melt<-filter(all.singlePI.melt,Genotype!="test")
-save(all.singlePI.melt, file=paste0(getwd(),"/PI_tracking_macro.rda"))
+save(all.singlePI.melt, file=paste0(getwd(),"/PI_tracking_macro.rda")
 
 #PART II: Analyse the metric data
 #Combine all the mean metrics data into one list
@@ -272,6 +272,9 @@ remove_unwanted_lines<-function(df){
  df
   }
 total.metrics<-lapply(total.metrics, FUN = remove_unwanted_lines)
+#Calulate and plot the PI data
+
+
 #Calculate baseline, delta, stats and plot final graphs
 for(i in 1:length(total.metrics)) {
   metric<-names(total.metrics[i])
