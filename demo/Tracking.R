@@ -31,7 +31,6 @@ metric_extract2<- function(data, fly, metric=c("DistCenter", "DistBorder","DistN
   data.frame(quadrant, metric, sec)
 }
 
-
 #Functions to classify and average the metric across distinct quadrant positions for each fly.
 #Used on Mean_Of_Exp.
 First30_perfly_mean<-function(df)  {
@@ -201,7 +200,7 @@ finalframe<-min(melt(lapply(totalPI, FUN = minimum.frames))[,1])
 frame.cut<-function(mat) mat[,1:finalframe] #Equalise frames at the end
 totalPI<-lapply(totalPI, frame.cut)
 index<-c(1:finalframe)/30 #This is the framerate from the camerasettings.json file
-.
+
 singlePI<-function(PIseries, w1s=55, w1e=60, w2s=115, w2e=120) {
   m<-data.frame(cbind(seconds= c(1:finalframe)/30,as.data.frame(PIseries)))
   m1<-colMeans(m[m$seconds>=w1s & m$seconds<=w1e ,])[-1]
