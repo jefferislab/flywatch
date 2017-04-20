@@ -11,7 +11,12 @@ library(car)
 
 #Set the control genotype
 control<-"EmptySp"
-
+#Extract the different metrics from the tifs
+PIextract<- function(data) {
+  s<-matrix(ncol=2, byrow=TRUE, data=c(1,2))
+  PItime<-sapply(data, "[", s)
+  PItime
+}
 metric_extract2<- function(data, fly, metric=c("DistCenter", "DistBorder","DistNeigh", "CforLoco", "CTurning")) {
   if(metric=="DistCenter") col<-13
   if(metric=="DistBorder") col<-14
@@ -25,6 +30,8 @@ metric_extract2<- function(data, fly, metric=c("DistCenter", "DistBorder","DistN
   sec<-(1:length(metric))/30
   data.frame(quadrant, metric, sec)
 }
+
+
 #Functions to classify and average the metric across distinct quadrant positions for each fly.
 #Used on Mean_Of_Exp.
 First30_perfly_mean<-function(df)  {
@@ -120,6 +127,7 @@ DistBorder.mean.per.exp<-data.frame()
 DistNeigh.mean.per.exp<-data.frame()
 CforLoco.mean.per.exp<-data.frame()
 CTurning.mean.per.exp<-data.frame()
+totalPI<-vector("list", length = length(ugenotypes))
 for(i in 1:length(ugenotypes)) {
   #First loop through the genotypes
   files<-grep(paste0("_", ugenotypes[i])
@@ -133,6 +141,9 @@ for(i in 1:length(ugenotypes)) {
     metric.list.DistNeigh<-list()
     metric.list.CforLoco<-list()
     metric.list.CTurning<-list()
+
+    totalPI[[i]]<-rbind(totalPI[[i]], PIextract(data))
+
     #Loop through each fly to extract the metric we want
     for(k in 1:MaxN)   {
       extract<-metric_extract2(data, k, metric = "DistCenter")
@@ -184,6 +195,28 @@ for(i in 1:length(ugenotypes)) {
   }
 }
 
+#PART I: Analyse PI
+minimum.frames<-function(x) min(apply(X = x,1, length))
+finalframe<-min(melt(lapply(totalPI, FUN = minimum.frames))[,1])
+frame.cut<-function(mat) mat[,1:finalframe] #Equalise frames at the end
+totalPI<-lapply(totalPI, frame.cut)
+index<-c(1:finalframe)/30 #This is the framerate from the camerasettings.json file
+.
+singlePI<-function(PIseries, w1s=55, w1e=60, w2s=115, w2e=120) {
+  m<-data.frame(cbind(seconds= c(1:finalframe)/30,as.data.frame(PIseries)))
+  m1<-colMeans(m[m$seconds>=w1s & m$seconds<=w1e ,])[-1]
+  m2<-colMeans(m[m$seconds>=w2s & m$seconds<=w2e ,])[-1]
+  colMeans(rbind(-1*m1,m2))
+} #Set the PI analysis window
+mat.singlePI<-function(x) apply(x, 1, singlePI) #Function to run singlePI through each row in a matrix. Frames must be equalised.
+all.singlePI<-lapply(totalPI, mat.singlePI) #Run mat.singlePI() through all elements of the list
+all.singlePI.melt<-melt(all.singlePI)
+names(all.singlePI.melt)<-c("PI", "Genotype")
+all.singlePI.melt<-arrange(all.singlePI.melt, desc(Genotype=="EmptySp"))
+all.singlePI.melt<-filter(all.singlePI.melt,Genotype!="test")
+save(all.singlePI.melt, file=paste0(getwd(),"/PI_tracking_macro.rda"))
+
+#PART II: Analyse the metric data
 #Combine all the mean metrics data into one list
 all.metrics<-list(DistCenter.mean.per.exp
                   ,DistBorder.mean.per.exp,DistNeigh.mean.per.exp
