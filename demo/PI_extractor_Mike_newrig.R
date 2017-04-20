@@ -135,7 +135,7 @@ g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizo
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
 g<-g+theme(legend.title=element_blank())
 g
-ggsave(filename = "PI_boxplot.pdf",
+ggsave(filename = "AmbientLightON.pdf",
        width=16 ,height =9, plot=g, path=".")
 
 #ANALYSIS III: Combining data from both screening sessions, plotting both and analysing repeats
