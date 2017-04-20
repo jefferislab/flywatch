@@ -213,7 +213,7 @@ all.singlePI.melt<-melt(all.singlePI)
 names(all.singlePI.melt)<-c("PI", "Genotype")
 all.singlePI.melt<-arrange(all.singlePI.melt, desc(Genotype=="EmptySp"))
 all.singlePI.melt<-filter(all.singlePI.melt,Genotype!="test")
-save(all.singlePI.melt, file=paste0(getwd(),"/PI_tracking_macro.rda")
+save(all.singlePI.melt, file=paste0(getwd(),"/PI_tracking_macro.rda"))
 
 #PART II: Analyse the metric data
 #Combine all the mean metrics data into one list
@@ -249,6 +249,13 @@ for(i in 1:length(all.metrics)) {
 
 #Combine the two screens for full analysis
 setwd("/Volumes/Data/BehaviourData")
+#Calulate and plot the PI data
+Dec2015_PI<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/PI_tracking_macro.rda")
+Sept2016_PI<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/PI_tracking_macro.rda")
+all_PI<-
+
+
+
 Dec2015<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/Tracking_all.metrics.rda")
 Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/Tracking_all.metrics.rda")
 merge_metric_lists<-function(x, y) {
@@ -272,7 +279,7 @@ remove_unwanted_lines<-function(df){
  df
   }
 total.metrics<-lapply(total.metrics, FUN = remove_unwanted_lines)
-#Calulate and plot the PI data
+
 
 
 #Calculate baseline, delta, stats and plot final graphs
