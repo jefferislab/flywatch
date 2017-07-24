@@ -1,17 +1,15 @@
-#This version of the PI extraction  code is optimised for the older rig and in this case is looking 
-# specifcally at the iPN line versus empty control 
+#This version of the PI extraction  code is optimised for the older rig and in this case is looking
+# specifcally at the iPN line versus empty control
 
-#Note you will need to exclude data with n=1 and change finalframe variable and index variable 
+#Note you will need to exclude data with n=1 and change finalframe variable and index variable
 #if you end up using data from the old rig (different frame rate).
 #Set the working directory and load up the required packages and functions
 library(tiff)
-library(rmngb) 
 library(ggplot2)
 library(reshape2)
 library(dplyr)
-library(PMCMR)
-library(car)
-library(FSA)
+library(multcomp)
+library(DescTools)
 
 PIext<- function(data) {
   s<-matrix(ncol=2, byrow=TRUE, data=c(1,2))
@@ -24,7 +22,6 @@ dir<-list.files(pattern=".tif$", recursive=TRUE)
 #Find the different genotypes by pulling out all the genotype data from TIFF filenames
 codes<-strsplit(dir, "_")
 genotypes<-sapply(codes, "[", 2)
-dir2<-data.frame(Tiffs=dir, line=genotypes)
 ugenotypes<-unique(genotypes)
 print("These are the genotypes to be analysed. Please check for naming errors:");print(ugenotypes)
 
@@ -33,23 +30,21 @@ print("These are the genotypes to be analysed. Please check for naming errors:")
 totalPI<-vector("list", length = length(ugenotypes))
 names(totalPI)<-ugenotypes
 for(i in 1:length(ugenotypes)) {
-  files<-grep(paste0("_", ugenotypes[i]), 
+  files<-grep(paste0("_", ugenotypes[i]),
               dir, value=TRUE, fixed=TRUE)
   if (length(files)==1) next
   for(j in 1:length(files)) {
-    data<-readTIFF(source = files[j], all=TRUE, as.is=FALSE) 
+    data<-readTIFF(source = files[j], all=TRUE, as.is=FALSE)
     totalPI[[i]]<-rbind(totalPI[[i]], PIext(data))
   }
 }
 
-#A function to equalise frames at the end so I can 
-# easily make dataframes. The number depends on the arena.  
+#A function to equalise frames at the end so I can
+# easily make dataframes. The number depends on the arena.
 colGet<-function(mat, finalframe) mat[,1:finalframe]
 totalPI<-lapply(totalPI, colGet, finalframe=3642)
 
-
-
-#Read out the means of each genotype and give a list 
+#Read out the means of each genotype and give a list
 meanPI<-vector("list", length=length(ugenotypes))
 names(meanPI)<-ugenotypes
 meanPI<-lapply(totalPI, colMeans)
@@ -73,21 +68,21 @@ for(i in 2:(length(ugenotypes)+1)) {
   g<-ggplot(data = PI_df,aes(x=seconds))
   g<-g+geom_line(aes(y=PI_df[,i], color=names(PI_df)[i]))
   g<-g+geom_line(aes(y=MB83C, color="MB83C"))
-  g<-g+geom_ribbon(aes(ymin=PI_df[,i]-PI_df[,i+length(ugenotypes)], 
+  g<-g+geom_ribbon(aes(ymin=PI_df[,i]-PI_df[,i+length(ugenotypes)],
                        ymax=PI_df[,i]+PI_df[,i+length(ugenotypes)] )
                    , alpha=.3)
   g<-g+geom_ribbon(aes(ymin=MB83C-MB83Csem, ymax=MB83C+MB83Csem), alpha=.3)
   g<-g+geom_rect(xmax=60, xmin=30, ymax=0, ymin=-1, alpha=0.002, fill="red")
   g<-g+geom_rect(xmax=120, xmin=90, ymax=1, ymin=0, alpha=0.002, fill="red")
-  g<-g+coord_cartesian(xlim = c(0, 120), ylim=c(-1,1),expand=FALSE) 
-  g<-g+labs(x="Time (Seconds)", y="PI",title="20XUAS-ChrimsonR") 
+  g<-g+coord_cartesian(xlim = c(0, 120), ylim=c(-1,1),expand=FALSE)
+  g<-g+labs(x="Time (Seconds)", y="PI",title="20XUAS-ChrimsonR")
   g<-g+theme(legend.title=element_blank()) #Turn off the legend title
   filename<-paste0(names(PI_df[i]), "_meanPI.png")
   ggsave(filename = filename, plot=g, path=".")
 }
 
 
-#Function to calculate the single-value mean from a desired window of a vector. 
+#Function to calculate the single-value mean from a desired window of a vector.
 #The stimulation windows are 30-60sec and 90-120sec. Yoshi uses last 5 seconds.
 singlePI<-function(PIseries, w1s=55, w1e=60, w2s=115, w2e=120) {
   m<-data.frame(cbind(seconds= c(1:3642)/30,as.data.frame(PIseries)))
@@ -96,12 +91,12 @@ singlePI<-function(PIseries, w1s=55, w1e=60, w2s=115, w2e=120) {
   colMeans(rbind(-1*m1,m2))
 }
 
-#Function to run singlePI through each row in a matrix. Note first equalise frames using 
-#code above. 
+#Function to run singlePI through each row in a matrix. Note first equalise frames using
+#code above.
 mat.singlePI<-function(x) apply(x, 1, singlePI)
 
-#Run mat.singlePI() through all elements of the list 
-all.singlePI<-lapply(totalPI, mat.singlePI) 
+#Run mat.singlePI() through all elements of the list
+all.singlePI<-lapply(totalPI, mat.singlePI)
 
 #Calculate the mean of each genotype under the specified window and get a summary
 all.singlePI.means<-sapply(all.singlePI, mean)
@@ -111,7 +106,7 @@ summary(all.singlePI.means)
 sem<-function(x) sqrt(var(x)/length(x))
 all.singlePI.sem<-sapply(all.singlePI, sem)
 
-#Convert these to simple dataframes and start plotting. Note to use reorder 
+#Convert these to simple dataframes and start plotting. Note to use reorder
 #function to organise the graph as ggplot2 doesn't care about arranged dfs
 all.singlePI.df<-data.frame(Genotype=names(all.singlePI.means)
                             ,meanPI=unname(all.singlePI.means)
@@ -120,41 +115,42 @@ all.singlePI.df<-data.frame(Genotype=names(all.singlePI.means)
 #Remove genotypes you do not want in final analysis
 all.singlePI.df_clean<-all.singlePI.df
 
-#Plot cleaned data
+#Plot cleaned data as barchart
 g<-ggplot(data=all.singlePI.df_clean, aes(x=reorder(Genotype, meanPI)
                                           , y=meanPI))
-g<-g+geom_point(stat = "identity", size=3)
-g<-g+geom_hline(yintercept = Empty$meanPI)
+g<-g+geom_bar(stat = "identity", size=3)
 g<-g+geom_errorbar(aes(ymin=meanPI-sem, ymax=meanPI+sem))
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1)) #horizontal text
 g<-g+labs(x="Genotype", y="mean PI (5sec window) with SEM",title="") #Titles
 g
+ggsave("PI_oldrig.pdf")
 
-#Turn all.singlePI into a tidy dataframe 
-all.singlePI.melt<-melt(all.singlePI[2:4])
-names(all.singlePI.melt)<-c("PI", "Genotype")
-g<-ggplot(data=all.singlePI.melt, aes(x=reorder(Genotype, PI), y=PI))
-g<-g+geom_boxplot(aes(fill=Genotype))
-g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, size=15)) #horizontal text
-g<-g+labs(x="", y="PI (5sec window)")
-g<-g+theme(legend.position="none")
+#Replot and run statistics on the data
+#Reshape the data and perform an ANOVA
+all.singlePI<-melt(all.singlePI)
+names(all.singlePI)<-c("PI", "Genotype")
+fit<-aov(PI~Genotype, data=all.singlePI)
+summary(fit) #Print the ANOVA results
+
+
+#Run a Dunnett's Test with empsp as the control and add Pvals as factors to df
+all.singlePI$Genotype<-as.factor(all.singlePI$Genotype)
+DTest<-as.data.frame(DunnettTest(PI~Genotype, data=all.singlePI)[[1]])
+DTest$Genotypes<-dimnames(DTest)[[1]]
+rownames(DTest)<-NULL
+DTest$Genotypes<-gsub(pattern = "-empsp", replacement = "", x = DTest$Genotypes)
+DTest<-DTest[,4:5]
+DTest<-rbind(DTest, data.frame(pval=NA,Genotypes= "empsp"))
+pvals<-merge(x = all.singlePI, y=DTest, by.x = "Genotype", by.y = "Genotypes")
+pvals$Valence<-ifelse(pvals$pval<0.05, "Significant", "Not Significant")
+
+#Plot the data as boxplots and colour by significance (according to the FDR)
+g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI, FUN=mean), y=PI))
+g<-g+geom_boxplot(aes(fill=Valence), )
+g<-g+geom_point(position=position_jitter(w=0.15) ,size=2, alpha=0.5,)
+g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
+g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
+g<-g+theme(legend.title=element_blank())
 g
-
-g<-ggplot(data=all.singlePI.melt, aes(x=reorder(Genotype, PI), y=PI))
-g<-g+geom_boxplot(aes(fill=Genotype))
-g<-g+theme(axis.ticks = element_blank(), axis.text.x = element_blank())
-g<-g+labs(x="", y="PI (5sec window)")
-g
-
-#Do a wilcoxon test 
-all.singlePI.melt_clean<-filter(all.singlePI.melt, Genotype=="MB83C" | Genotype=="SS01113")
-all.singlePI.melt_clean$Genotype<-as.factor(all.singlePI.melt_clean$Genotype)
-wilcox.test(PI ~ Genotype,data=all.singlePI.melt_clean)
-
-#For the 37G11 data, run a KW test followed by a dunn's test
-leveneTest(PI~Genotype, data = all.singlePI.melt) #Test for heteroskedasticity which would violate assumptions
-kruskal.test(all.singlePI.melt)  #First a Kruskal-Wallis omnibus test, implying significant differences
-dunnTest(PI~Genotype, data = all.singlePI.melt,method="bonferroni") #All-v-All from the FSA package
-
-
+ggsave("PI_oldrig.pdf")
 
