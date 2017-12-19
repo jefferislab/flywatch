@@ -132,7 +132,6 @@ names(all.singlePI)<-c("PI", "Genotype")
 fit<-aov(PI~Genotype, data=all.singlePI)
 summary(fit) #Print the ANOVA results
 
-
 #Run a Dunnett's Test with empsp as the control and add Pvals as factors to df
 all.singlePI$Genotype<-as.factor(all.singlePI$Genotype)
 DTest<-as.data.frame(DunnettTest(PI~Genotype, data=all.singlePI)[[1]])
@@ -146,11 +145,16 @@ pvals$Valence<-ifelse(pvals$pval<0.05, "Significant", "Not Significant")
 
 #Plot the data as boxplots and colour by significance (according to the FDR)
 g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI, FUN=mean), y=PI))
-g<-g+geom_boxplot(aes(fill=Valence), )
-g<-g+geom_point(position=position_jitter(w=0.15) ,size=2, alpha=0.5,)
+g<-g+geom_boxplot(aes(fill=Valence))
+g<-g+geom_point(position=position_jitter(w=0.15) ,size=2, alpha=0.5)
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
 g<-g+theme(legend.title=element_blank())
 g
 ggsave("PI_oldrig.pdf")
+
+#Pull the temperature data
+
+
+
 

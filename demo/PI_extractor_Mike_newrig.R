@@ -11,6 +11,11 @@ library(xlsx)
 library(PMCMR)
 library(car)
 
+#Remove Cam1 entries
+#files<-list.files(path = ".", recursive = TRUE, include.dirs = TRUE)
+#Cam1s<-grep(x = files, pattern = "Cam1", fixed = TRUE, value = TRUE)
+#file.remove(Cam1s)
+
 #Load up the required functions
 PIextract<- function(data) {
   s<-matrix(ncol=2, byrow=TRUE, data=c(1,2))
@@ -77,6 +82,8 @@ names(semPI)<-paste0(ugenotypes, "sem")
 for(i in 1:length(ugenotypes))  semPI[[i]]<- sqrt(varsPI[[i]]/n[i])
 PI_df<-cbind(cbind(seconds= index,as.data.frame(meanPI))
              ,as.data.frame(semPI))
+#PI_flip<-cbind(select(PI_df, seconds), PI_df[,-1]*(-1)) #For flipping the PI
+#PI_df<-PI_flip
 #Plot each line with the empty/emptySp control. Set which.
 for(i in 2:(length(ugenotypes)+1)) {
   g<-ggplot(data = PI_df,aes(x=seconds))
