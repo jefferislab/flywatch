@@ -246,12 +246,6 @@ for(i in 1:length(all.metrics)) {
 #Combine the two screens for full analysis
 setwd("/Volumes/Data/BehaviourData")
 #Calulate and plot the PI data
-Dec2015_PI<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/PI_tracking_macro.rda")
-Sept2016_PI<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/PI_tracking_macro.rda")
-
-
-
-
 Dec2015<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/Tracking_all.metrics.rda")
 Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/Tracking_all.metrics.rda")
 merge_metric_lists<-function(x, y) {
