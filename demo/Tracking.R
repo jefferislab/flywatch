@@ -107,11 +107,7 @@ signif_boxplot<-function(data=df, type=c("baseline", "deltametric")) {
   ggsave(filename = name, width=16
          ,height =9 ,plot=g, path=".")
 }
-loadRData <- function(fileName){
-  #loads an RData file, and returns it
-  load(fileName)
-  get(ls()[ls() != "fileName"])
-}
+
 
 #First loop through the experiments by genotype
 dir<-list.files(pattern="TrackingResults.tif$", recursive=TRUE) #Pull out the correct tifs
@@ -252,7 +248,7 @@ setwd("/Volumes/Data/BehaviourData")
 #Calulate and plot the PI data
 Dec2015_PI<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/PI_tracking_macro.rda")
 Sept2016_PI<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/PI_tracking_macro.rda")
-all_PI<-
+
 
 
 
