@@ -12,6 +12,11 @@ library(car)
 #Set the control genotype
 control<-"EmptySp"
 #Extract the different metrics from the tifs
+loadRData <- function(fileName){
+  #loads an RData file, and returns it
+  load(fileName)
+  get(ls()[ls() != "fileName"])
+}
 PIextract<- function(data) {
   s<-matrix(ncol=2, byrow=TRUE, data=c(1,2))
   PItime<-sapply(data, "[", s)
@@ -247,8 +252,8 @@ for(i in 1:length(all.metrics)) {
 setwd("/Volumes/Data/BehaviourData")
 
 #Calulate and plot the PI data
-Dec2015<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/Tracking_all.metrics.rda")
-Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/Tracking_all.metrics.rda")
+Dec2015<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/Tracking_all.metrics_5secWindow.rda")
+Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/Tracking_all.metrics_5secWindow.rda")
 merge_metric_lists<-function(x, y) {
   output<-vector("list", 5)
   names(output)<-names(x)
@@ -293,7 +298,22 @@ for(i in 1:length(total.metrics)) {
   pvals<-calculate_significants(deltam, type="deltametric")
   signif_boxplot(data=pvals,type="deltametric" )
 }
-save(total.metrics, file = "Tracking_all.metrics.rda")
+save(total.metrics, file = "Tracking_all.metrics_fullScreen_5secWindow.rda")
 
-#
+#Focusing on the forward locomotion data analysis on the 5second analysis window
+loco<-total.metrics$CforLoco
+loco<-filter(loco, Genotype!="Gr66a" & Genotype!="SpEmpty")
 
+deltam<-delta_metric(loco)
+deltam<-arrange(deltam, desc(Genotype=="EmptySp"))
+pvals<-calculate_significants(deltam, type="deltametric")
+
+#Plot this data
+g<-ggplot(data=pvals, aes(x=reorder(Genotype, deltaM_M), y=deltaM_M))
+g<-g+geom_boxplot(aes(fill=Valence))
+g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
+g<-g+labs(x="Genotype", y="DeltaMetric") #Titles
+g<-g+theme(legend.title=element_blank())
+g
+ggsave(filename = "CforLoco_delta_5secWindow_noGr66a_FDR15.pdf", width=16
+       ,height =9 ,plot=g, path=".")
