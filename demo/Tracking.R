@@ -38,12 +38,12 @@ First30_perfly_mean<-function(df)  {
   mean(df$metric, na.rm=TRUE)
 } #Mean metric for all quadrants before stimulation
 Stim1_perfly_mean<-function(df)  {
-  df<-filter(df, sec>30 & sec<=60)
+  df<-filter(df, sec>30 & sec<=35)
   df<-filter(df, quadrant==2 | quadrant==3)
   mean(df$metric, na.rm=TRUE)
 } #Mean Metric for the first pair of stimulation quadrants
 Stim2_perfly_mean<-function(df)  {
-  df<-filter(df, sec>90)
+  df<-filter(df, sec>90 & sec<=95)
   df<-filter(df, quadrant==1 | quadrant==4)
   mean(df$metric, na.rm=TRUE)
 } #Mean Metric for the first pair of stimulation quadrants
@@ -67,7 +67,7 @@ delta_metric<-function(df) {
   metricSingleVal<-select(df, Genotype, deltaM_M)
   metricSingleVal
 } #Calculate the delta metric value.
-calculate_significants<-function(dataframe, type=c("baseline", "deltametric"), p=.10){
+calculate_significants<-function(dataframe, type=c("baseline", "deltametric"), p=.15){
   #Calculate the significant cell-types and label them in the dataframe
   #Uses a posthoc dunn's control test and 10% FDR
   if(type=="baseline") {
@@ -101,7 +101,7 @@ signif_boxplot<-function(data=df, type=c("baseline", "deltametric")) {
   }
   g<-g+geom_boxplot(aes(fill=Valence))
   g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
-  g<-g+labs(x="Genotype", y="Performance Index",title=metric) #Titles
+  g<-g+labs(x="Genotype", y="DeltaMetric",title=metric) #Titles
   g<-g+theme(legend.title=element_blank())
   g
   ggsave(filename = name, width=16
@@ -217,7 +217,7 @@ all.metrics<-list(DistCenter.mean.per.exp
                   ,DistBorder.mean.per.exp,DistNeigh.mean.per.exp
                   ,CforLoco.mean.per.exp, CTurning.mean.per.exp)
 names(all.metrics)<-c("DistCenter", "DistBorder","DistNeigh", "CforLoco", "CTurning")
-save(all.metrics, file = "Tracking_all.metrics.rda")
+save(all.metrics, file = "Tracking_all.metrics_5secWindow.rda")
 
 #For each metric in the all.metrics list, calculate the baseline and delta metric
 #,run statistics and plot the graphs.
@@ -245,6 +245,7 @@ for(i in 1:length(all.metrics)) {
 
 #Combine the two screens for full analysis
 setwd("/Volumes/Data/BehaviourData")
+
 #Calulate and plot the PI data
 Dec2015<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/Tracking_all.metrics.rda")
 Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/Tracking_all.metrics.rda")
@@ -270,8 +271,6 @@ remove_unwanted_lines<-function(df){
   }
 total.metrics<-lapply(total.metrics, FUN = remove_unwanted_lines)
 
-
-
 #Calculate baseline, delta, stats and plot final graphs
 for(i in 1:length(total.metrics)) {
   metric<-names(total.metrics[i])
@@ -296,6 +295,5 @@ for(i in 1:length(total.metrics)) {
 }
 save(total.metrics, file = "Tracking_all.metrics.rda")
 
-
-#Fix the code to pull out PI also, code in significant cell-types
+#
 
