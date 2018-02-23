@@ -147,9 +147,9 @@ ggsave(filename = "AmbientLightON.pdf",
 
 #ANALYSIS III: Combining data from both screening sessions, plotting both and analysing repeats
 setwd("/Volumes/Samsung_T3/Behaviour_data")
-Dec2015<-loadRData("/Volumes/Samsung_T3/Behaviour_data/Mike_newrig_Dec2015_screen/data.rda")
+Dec2015<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Dec2015_screen/data.rda")
 Dec2015<-filter(Dec2015, Genotype!="Empty") #Bug in the DunnTest code, need to remove this to use EmptySp as control
-Sept2016<-loadRData("/Volumes/Samsung_T3/Behaviour_data/Mike_newrig_Sept2016_screen//data.rda")
+Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/data.rda")
 all.data<-rbind(Dec2015,Sept2016)
 #Remove unwanted samples
 all.data<-filter(all.data, Genotype!="test"| Genotype!="MB83c")
