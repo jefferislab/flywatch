@@ -194,6 +194,29 @@ g
 ggsave(filename = "alldata_EmptySplitcontrol_FDR10.pdf", width=16
        ,height =9 ,plot=g, path=".")
 
+#Plot just the significants and colour by cell-type
+sig<-filter(pvals, Valence=="Significant" | Genotype=="EmptySp")
+sig<-filter(sig, Genotype!="Gr66a")
+sig<-filter(sig, Genotype!="L235")
+types<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)
+sig_types<-merge(x = sig, by.x="Genotype", y=types, by.y = "LineCode", all.x = TRUE
+                 , all.y=FALSE)
+
+g<-ggplot(data=sig_types, aes(x=reorder(Genotype, PI), y=PI))
+g<-g+geom_hline(yintercept =0, alpha=0.6)
+g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI)), outlier.shape = NA)
+
+g<-g+geom_boxplot(data=filter(sig_types, Genotype=="EmptySp"), col="red", outlier.shape = NA)
+g<-g+geom_jitter(alpha=0.2, width=0.1, size=2 )
+g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
+g<-g+theme_bw()
+g<-g+theme(legend.title=element_blank())
+g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
+g<-g+theme(axis.text.x = element_text(size=10),  axis.text.y = element_text(size=10))
+g
+ggsave(filename = "alldata_EmptySplitcontrol_FDR10_significants.pdf",plot=g, path=".")
+
+
 #ANALYSIS IV: Significance by line cell-type. FIX THIS!
 #Examine and plot the distribution of the clusters/cell-types examined
 LineSum<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)[,c(1,3)]
