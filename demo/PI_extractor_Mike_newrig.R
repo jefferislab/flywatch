@@ -167,9 +167,12 @@ t.test(x = repeat.means.Sept2016[,2]-repeat.means.Dec2015[,2]) #No significant d
 controls<-filter(all.data, Genotype=="Empty" | Genotype=="EmptySp")
 kruskal.test(controls)  #Compare the two controls, pretty different
 g<-ggplot(data = controls, mapping = aes(x=Genotype, y=PI))
+g<-g+geom_hline(yintercept = 0, alpha=0.5)
 g<-g+geom_boxplot(aes(fill=Genotype))
+g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
 g
 ggsave(filename = "PI_comparision_controls.pdf", plot=g, path=".")
+
 #Statistical tests on all the data, using either EmptySplit or Empty as the control
 all.data<-arrange(all.data, desc(Genotype=="EmptySp"))
 leveneTest(PI~Genotype, data = all.data) #Test for heteroskedasticity which would violate assumptions
@@ -203,16 +206,16 @@ sig_types<-merge(x = sig, by.x="Genotype", y=types, by.y = "LineCode", all.x = T
                  , all.y=FALSE)
 
 g<-ggplot(data=sig_types, aes(x=reorder(Genotype, PI), y=PI))
-g<-g+geom_hline(yintercept =0, alpha=0.6)
+g<-g+geom_hline(yintercept =0, alpha=0.8)
 g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI)), outlier.shape = NA)
-
-g<-g+geom_boxplot(data=filter(sig_types, Genotype=="EmptySp"), col="red", outlier.shape = NA)
-g<-g+geom_jitter(alpha=0.2, width=0.1, size=2 )
+g<-g+geom_boxplot(data=filter(sig_types, Genotype=="EmptySp"), col="red", fill="grey", outlier.shape = NA)
+g<-g+geom_jitter(alpha=0.35, width=0.1, size=2 )
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
-g<-g+theme_bw()
 g<-g+theme(legend.title=element_blank())
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
 g<-g+theme(axis.text.x = element_text(size=10),  axis.text.y = element_text(size=10))
+g<-g+theme(axis.text.x = element_text(size=12))
+g<-g+theme(axis.text.y = element_text(size=12))
 g
 ggsave(filename = "alldata_EmptySplitcontrol_FDR10_significants.pdf",plot=g, path=".")
 
