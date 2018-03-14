@@ -216,33 +216,7 @@ g<-g+theme(axis.text.x = element_text(size=10),  axis.text.y = element_text(size
 g
 ggsave(filename = "alldata_EmptySplitcontrol_FDR10_significants.pdf",plot=g, path=".")
 
-
-#ANALYSIS IV: Significance by line cell-type. FIX THIS!
-#Examine and plot the distribution of the clusters/cell-types examined
-LineSum<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)[,c(1,3)]
-length(unique(LineSum[,2])) #Get the number of cell-types analysed
-LineSum.tab<-as.data.frame(table(LineSum$Clusters..Cluster))
-names(LineSum.tab)<-c("Cell-Type", "Frequency")
-LineSum.tab<-arrange(LineSum.tab, Frequency)
-barplot(height=LineSum.tab[,2], names.arg=LineSum.tab[,1], col="red",cex.names=.6,las=2
-        , ylab="Frequency")
-#Plot the lines and cell-types that were statistically significant
-hits<-melt(unique(as.character(pvals[pvals$pvalue_v_Empty<p,]$Genotype)))
-names(hits)<-"LineCode"
-hits<-merge(x = hits, y = LineSum, by="LineCode", all.x=TRUE
-            ,all.y = FALSE)
-hits.table<-as.data.frame(table(hits[,2]))
-names(hits.table)<-c("Cell-Type", "FreqHit")
-hits.merge<-merge(x=hits.table, y=LineSum.tab, by="Cell-Type", all=TRUE)
-hits.merge<-arrange(hits.merge, Frequency)
-barplot(height=hits.merge[,3], names.arg=LineSum.tab[,1], col="firebrick1",cex.names=.6,las=2
-        , ylab="Frequency")
-barplot(height=hits.merge[,2], names.arg=LineSum.tab[,1], col="deepskyblue1",cex.names=.6,las=2
-        , ylab="Frequency", add=TRUE)
-
-
-#ANALYSIS V: Comparing two different protocols
-
+#ANALYSIS IV: Comparing two different protocols
 #Sort through the directory and pull out the TIFFs, genotypes and protocols
 dir<-list.files(pattern="measurementsXY.tif$", recursive=TRUE) #Pull out the correct tif
 genotypes<-sapply(strsplit(dir, "_"), "[", 5)
