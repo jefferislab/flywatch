@@ -205,17 +205,19 @@ types<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)
 sig_types<-merge(x = sig, by.x="Genotype", y=types, by.y = "LineCode", all.x = TRUE
                  , all.y=FALSE)
 
-g<-ggplot(data=sig_types, aes(x=reorder(Genotype, PI), y=PI))
+g<-ggplot(data=sig_types, aes(x=reorder(Genotype, PI, FUN=mean), y=PI))
 g<-g+geom_hline(yintercept =0, alpha=0.8)
-g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI)), outlier.shape = NA)
+g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI, FUN=mean)), outlier.shape = NA)
 g<-g+geom_boxplot(data=filter(sig_types, Genotype=="EmptySp"), col="red", fill="grey", outlier.shape = NA)
 g<-g+geom_jitter(alpha=0.35, width=0.1, size=2 )
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
 g<-g+theme(legend.title=element_blank())
+g<-g+theme(legend.text=element_text(size=13))
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
 g<-g+theme(axis.text.x = element_text(size=10),  axis.text.y = element_text(size=10))
 g<-g+theme(axis.text.x = element_text(size=12))
 g<-g+theme(axis.text.y = element_text(size=12))
+g<-g+theme(axis.title = element_text(size=15))
 g
 ggsave(filename = "alldata_EmptySplitcontrol_FDR10_significants.pdf",plot=g, path=".")
 

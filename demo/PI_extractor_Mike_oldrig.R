@@ -47,7 +47,7 @@ totalPI<-lapply(totalPI, colGet, finalframe=3642)
 #Read out the means of each genotype and give a list
 meanPI<-vector("list", length=length(ugenotypes))
 names(meanPI)<-ugenotypes
-meanPI<-lapply(totalPI, colMeans)
+meanPI<-lapply(totalPI, colMeans) #Remove any test files or exps that had no flies as they will be nulls
 
 #Calculate the SEM
 varsPI<-lapply(totalPI, colVars)
@@ -127,6 +127,7 @@ ggsave("PI_oldrig.pdf")
 
 #Replot and run statistics on the data
 #Reshape the data and perform an ANOVA
+all.singlePI<-lapply(totalPI, mat.singlePI) #Melt twice will mess it up
 all.singlePI<-melt(all.singlePI)
 names(all.singlePI)<-c("PI", "Genotype")
 fit<-aov(PI~Genotype, data=all.singlePI)
@@ -153,7 +154,29 @@ g<-g+theme(legend.title=element_blank())
 g
 ggsave("PI_oldrig.pdf")
 
-#Pull the temperature data
+#Plot the summmary ofjust 17B and 4A aversive hits from old rig for figure 7
+all.singlePI<-lapply(totalPI, mat.singlePI) #Melt twice will mess it up
+all.singlePI<-melt(all.singlePI)
+types<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)
+pvals<-merge(x = pvals, by.x="Genotype", y=types, by.y = "LineCode", all.x = TRUE
+                 , all.y=FALSE)
+pvals<-filter(pvals, Genotype!="L1395") #Remove this 16B line
+saveRDS(pvals,file = "Mike_oldrig/Old_Rig_Screen_AprilMay2017/aversive_only_data.rds")
+
+g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI, FUN=median), y=PI))
+mycol<-c("17B"="#F8766D", "4A"="#7CAE00", "grey")
+g<-g+geom_hline(yintercept =0, alpha=0.8)
+g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI)), outlier.shape = NA)
+g<-g+geom_boxplot(data=filter(pvals, Genotype=="empsp"), col="red", fill="grey", outlier.shape = NA)
+g<-g+scale_fill_manual(values=mycol)
+g<-g+geom_jitter(alpha=0.35, width=0.1, size=3 )
+g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
+g<-g+theme(legend.title=element_blank())
+g<-g+theme(legend.text=element_text(size=13))
+g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
+g<-g+theme(axis.text.x = element_text(size=13),  axis.text.y = element_text(size=13))
+g<-g+theme(axis.title = element_text(size=15))
+g
 
 
 
