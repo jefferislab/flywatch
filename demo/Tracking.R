@@ -8,7 +8,6 @@ library(PMCMR)
 library(ggplot2)
 library(car)
 
-
 #Set the control genotype
 control<-"EmptySp"
 #Extract the different metrics from the tifs
@@ -274,6 +273,7 @@ remove_unwanted_lines<-function(df){
  df<-filter(df, Genotype!= "MB083C")
  df<-filter(df, Genotype!= "Gr66a")
  df<-filter(df, Genotype!= "L235")
+ df<-filter(df, Genotype!= "L1000") #Only significant for Cturning, does not look convincing
  df
 }
 total.metrics<-lapply(total.metrics, FUN = remove_unwanted_lines)
