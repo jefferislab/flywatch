@@ -264,7 +264,7 @@ merge_metric_lists<-function(x, y) {
 } #Code to concancenate the two lists
 total.metrics<-merge_metric_lists(Dec2015,Sept2016)
 
-#Quality Control of the data
+#Quality Control of the data (removing lines and changing the Lcodes to LHcodes)
 remove_unwanted_lines<-function(df){
  df<-filter(df, Genotype!= "11E08")
  df<-filter(df, Genotype!= "53F04")
@@ -272,9 +272,16 @@ remove_unwanted_lines<-function(df){
  df<-filter(df, Genotype!= "Empty")
  df<-filter(df, Genotype!= "MB83C")
  df<-filter(df, Genotype!= "MB083C")
+ df<-filter(df, Genotype!= "Gr66a")
+ df<-filter(df, Genotype!= "L235")
  df
-  }
+}
 total.metrics<-lapply(total.metrics, FUN = remove_unwanted_lines)
+L_to_LH<-function(df){
+  df$Genotype<-gsub(pattern = "L", replacement = "LH", x = df$Genotype, fixed = TRUE)
+  df
+}
+total.metrics<-lapply(total.metrics, FUN= L_to_LH)
 
 #Calculate baseline, delta, stats and plot final graphs
 for(i in 1:length(total.metrics)) {
