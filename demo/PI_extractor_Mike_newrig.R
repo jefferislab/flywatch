@@ -138,7 +138,7 @@ pvals$Valence<-ifelse(pvals$pvalue_v_Empty<0.2, "Significant", "Not Significant"
 #Plot the data as boxplots and colour by significance (according to the FDR)
 g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI), y=PI))
 g<-g+geom_hline(yintercept = 0)
-g<-g+geom_boxplot(aes(fill=Valence), )
+g<-g+geom_boxplot(aes(fill=Valence))
 g<-g+geom_jitter(alpha=0.5, width = 0.1)
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
@@ -154,7 +154,7 @@ Dec2015<-filter(Dec2015, Genotype!="Empty") #Bug in the DunnTest code, need to r
 Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/data.rda")
 all.data<-rbind(Dec2015,Sept2016)
 #Remove unwanted samples
-all.data<-filter(all.data, Genotype!="test"| Genotype!="MB83c")
+all.data<-filter(all.data, Genotype!="test" & Genotype!="MB83c")
 all.data<-arrange(all.data, desc(Genotype=="EmptySp"))
 #Compare the repeated lines in the two screening sessions
 repeats<-c("L235", "L728", "L574", "L421", "L141", "L260", "L159", "L123")
