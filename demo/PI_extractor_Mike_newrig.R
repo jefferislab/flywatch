@@ -137,7 +137,9 @@ pvals<-merge(x = pvals, y =  all.singlePI.melt, by = "Genotype", all=TRUE)
 pvals$Valence<-ifelse(pvals$pvalue_v_Empty<0.2, "Significant", "Not Significant")
 #Plot the data as boxplots and colour by significance (according to the FDR)
 g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI), y=PI))
-g<-g+geom_boxplot(aes(fill=Valence))
+g<-g+geom_hline(yintercept = 0)
+g<-g+geom_boxplot(aes(fill=Valence), )
+g<-g+geom_jitter(alpha=0.5, width = 0.1)
 g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizontal text
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
 g<-g+theme(legend.title=element_blank())

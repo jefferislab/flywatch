@@ -71,7 +71,7 @@ delta_metric<-function(df) {
   metricSingleVal<-select(df, Genotype, deltaM_M)
   metricSingleVal
 } #Calculate the delta metric value.
-calculate_significants<-function(dataframe, type=c("baseline", "deltametric"), p=.15){
+calculate_significants<-function(dataframe, type=c("baseline", "deltametric"), p=.10){
   #Calculate the significant cell-types and label them in the dataframe
   #Uses a posthoc dunn's control test and 10% FDR
   if(type=="baseline") {
