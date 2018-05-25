@@ -154,7 +154,7 @@ Dec2015<-filter(Dec2015, Genotype!="Empty") #Bug in the DunnTest code, need to r
 Sept2016<-loadRData("/Volumes/Data/BehaviourData/Mike_newrig_Sept2016_screen/data.rda")
 all.data<-rbind(Dec2015,Sept2016)
 #Remove unwanted samples
-all.data<-filter(all.data, Genotype!="test" & Genotype!="MB83c")
+all.data<-filter(all.data, Genotype!="test" & Genotype!="MB83c" & Genotype!="L235")
 all.data<-arrange(all.data, desc(Genotype=="EmptySp"))
 #Compare the repeated lines in the two screening sessions
 repeats<-c("L235", "L728", "L574", "L421", "L141", "L260", "L159", "L123")
@@ -189,6 +189,7 @@ rownames(pvals)<-NULL #unname function doesn't work here.
 names(pvals)<-c("Genotype", "pvalue_v_Empty")
 pvals<-merge(x = pvals, y =  all.data, by = "Genotype", all=TRUE)
 pvals$Valence<-ifelse(pvals$pvalue_v_Empty<p, "Significant", "Not Significant")
+pvals$Genotype<-gsub(pattern = "L", replacement = "LH", x = pvals$Genotype, fixed = TRUE) #Change LXXXX toLHXXXX
 #Plot the data as boxplots and colour by significance (according to the FDR)
 g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI), y=PI))
 g<-g+geom_boxplot(aes(fill=Valence))
@@ -204,6 +205,8 @@ sig<-filter(pvals, Valence=="Significant" | Genotype=="EmptySp")
 sig<-filter(sig, Genotype!="Gr66a")
 sig<-filter(sig, Genotype!="L235")
 types<-read.xlsx(file = "Line_Summary.xlsx", sheetIndex = 1)
+types$LineCode<-gsub(pattern = "L", replacement = "LH", x = types$LineCode, fixed = TRUE) #Change LXXXX toLHXXXX
+
 sig_types<-merge(x = sig, by.x="Genotype", y=types, by.y = "LineCode", all.x = TRUE
                  , all.y=FALSE)
 
