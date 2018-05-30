@@ -162,12 +162,15 @@ pvals<-merge(x = pvals, by.x="Genotype", y=types, by.y = "LineCode", all.x = TRU
                  , all.y=FALSE)
 pvals<-filter(pvals, Genotype!="L1395") #Remove this 16B line
 saveRDS(pvals,file = "Mike_oldrig/Old_Rig_Screen_AprilMay2017/aversive_only_data.rds")
+pvals<-readRDS("aversive_only_data.rds")
+pvals$Genotype<-gsub(pattern = "L", replacement = "LH", x = pvals$Genotype, fixed = TRUE) #Change LXXXX toLHXXXX
 
+#Plot the data for Split-GAL4 paper
 g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI, FUN=median), y=PI))
 mycol<-c("17B"="#F8766D", "4A"="#7CAE00", "grey")
 g<-g+geom_hline(yintercept =0, alpha=0.8)
 g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI)), outlier.shape = NA)
-g<-g+geom_boxplot(data=filter(pvals, Genotype=="empsp"), col="red", fill="grey", outlier.shape = NA)
+g<-g+geom_boxplot(data=filter(pvals, Genotype=="empsp"), col="red", fill="white", outlier.shape = NA)
 g<-g+scale_fill_manual(values=mycol)
 g<-g+geom_jitter(alpha=0.35, width=0.1, size=3 )
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
@@ -177,7 +180,8 @@ g<-g+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust=0.5)) #horizo
 g<-g+theme(axis.text.x = element_text(size=13),  axis.text.y = element_text(size=13))
 g<-g+theme(axis.title = element_text(size=15))
 g
-
+ggsave(filename = "aversive_oldrig.pdf", width=8
+       ,height =9 ,plot=g, path=".")
 
 
 
