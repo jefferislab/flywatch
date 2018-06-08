@@ -211,9 +211,9 @@ sig_types<-merge(x = sig, by.x="Genotype", y=types, by.y = "LineCode", all.x = T
                  , all.y=FALSE)
 
 g<-ggplot(data=sig_types, aes(x=reorder(Genotype, PI, FUN=mean), y=PI))
-g<-g+geom_hline(yintercept =0, alpha=0.8)
+g<-g+geom_hline(yintercept=median(filter(sig_types, Genotype=="EmptySp")$PI), alpha=0.8, colour="red", linetype="dashed")
 g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI, FUN=mean)), outlier.shape = NA)
-g<-g+geom_boxplot(data=filter(sig_types, Genotype=="EmptySp"), col="red", fill="grey", outlier.shape = NA)
+g<-g+geom_boxplot(data=filter(sig_types, Genotype=="EmptySp"), col="red", color="white", outlier.shape = NA)
 g<-g+geom_jitter(alpha=0.35, width=0.1, size=2 )
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
 g<-g+theme(legend.title=element_blank())
