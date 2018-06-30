@@ -61,6 +61,12 @@ extract_SEM_metric<-function(Total.cut.df) {
   sem.melt<-dplyr::select(sem.melt, time, Var2, value)
   sem.melt
 }
+window.mean<-function(df, w1=150*30, w2=155*30) {
+  df<-df[w1:w2,]
+  means<-colMeans(df)
+  means
+}
+
 
 #Summarize and organize the experiments by genotype
 all_results<-list.files(pattern="TrackingResults.tif$", recursive=TRUE) #Pull out the correct tifs
@@ -99,6 +105,7 @@ summary(FLoco)
 #Cut the video frames to be the same length and compress each condition to a df
 finalframe<-min(sapply(X = FLoco, FUN = minimum.frames.list))
 FLoco.cut<-Cut_final_frame(FLoco)
+save(FLoco.cut, file=paste0(getwd(),"/data.rda"))
 
 #Plot1: Calculate the mean and SEM for time series plot
 mean<-extract_mean_metric(FLoco.cut)
@@ -134,7 +141,27 @@ g<-g+scale_color_manual(labels = c("Empty Split-GAL4", "LH1129"), values=c("dark
 g
 ggsave(filename = "LH1129_flybowl_locomotion.pdf",plot = g)
 
+#Plot2: Plotting the delta metric for the two 7A lines in the last window of analysis (set by w1 and w2 in window.mean)
+FLoco.subset<-FLoco.cut[1:3]
 
+stim<-sapply(FLoco.subset, FUN = window.mean)
+stim<-melt(stim)
+names(stim)<-c("Loco", "Genotype")
 
+#Run some statistics
+kruskal.test(stim)
+dunn.test.control(x = stim$Loco, g= as.factor(stim$Genotype), p.adjust.method = "bonferroni")
 
+#Plot this data
+g<-ggplot(data = stim, aes(Genotype, Loco))
+g<-g+geom_hline(yintercept=median(filter(stim, Genotype=="empsp")$Loco), colour="red", linetype="dashed")
+g<-g+geom_boxplot(width=0.4, outlier.shape = NA, fill="purple")
+g<-g+geom_boxplot(data=filter(stim, Genotype=="empsp"), col="red", fill="white", outlier.shape = NA, width=0.4)
+g<-g+geom_jitter(width = 0.1, alpha=0.5, size=2.5)
+g<-g+labs(x="", y="Mean Locomotion during stimulation",title="") #Titles
+g<-g+theme(axis.text.x = element_text(size=13),  axis.text.y = element_text(size=13))
+g<-g+theme(axis.title = element_text(size=15))
+g<-g+scale_x_discrete(labels=c("Empty Split-GAL4", "LH1129", "LH1139"))
+g
+ggsave(filename = "MeanLocomotion_duringStim_7A.pdf" )
 
