@@ -94,12 +94,12 @@ calculate_significants<-function(dataframe, type=c("baseline", "deltametric"), p
 }
 signif_boxplot<-function(data=df, type=c("baseline", "deltametric")) {
   #Plot the data as boxplots with the statistical significance
-
   if(type=="baseline") {
     g<-ggplot(data=data, aes(x=reorder(Genotype, First30), y=First30))
     name<-paste0(metric, "_baseline.pdf")
   }
   if(type=="deltametric") {
+    data<-dplyr::arrange(data, desc(deltaM_M))
     g<-ggplot(data=data, aes(x=reorder(Genotype, deltaM_M), y=deltaM_M))
     name<-paste0(metric, "_delta.pdf")
   }
@@ -314,12 +314,14 @@ for(i in 1:length(total.metrics)) {
 
   #Calculate the single value deltaM/M of the metric
   deltam<-delta_metric(total.metrics[[i]])
-  deltam<-arrange(deltam, desc(Genotype=="EmptySp"))
+  #deltam<-arrange(deltam, desc(Genotype=="EmptySp"))
   if(metric=="CTurning") {
     deltam$deltaM_M<-abs(deltam$deltaM_M)
   }
   #Calculate the significant differences for deltaM and plot
   pvals<-calculate_significants(deltam, type="deltametric")
+  pvals<-dplyr::arrange(pvals, desc(deltaM_M))
+
   signif_boxplot(data=pvals,type="deltametric" )
 }
 save(total.metrics, file = "Tracking_all.metrics_fullScreen_5secWindow.rda")
