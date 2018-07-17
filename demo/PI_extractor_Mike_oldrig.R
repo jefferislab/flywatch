@@ -167,7 +167,7 @@ pvals$Genotype<-gsub(pattern = "L", replacement = "LH", x = pvals$Genotype, fixe
 
 #Plot the data for Split-GAL4 paper
 g<-ggplot(data=pvals, aes(x=reorder(Genotype, PI, FUN=median), y=PI))
-mycol<-c("17B"="#F8766D", "4A"="#7CAE00", "grey")
+mycol<-c("17B"="#F8766D", "4A"="#00BA38", "grey")
 g<-g+geom_hline(yintercept=median(filter(pvals, Genotype=="empsp")$PI), alpha=0.8, colour="red", linetype="dashed")
 g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI)), outlier.shape = NA)
 g<-g+geom_boxplot(data=filter(pvals, Genotype=="empsp"), col="red", fill="white", outlier.shape = NA)

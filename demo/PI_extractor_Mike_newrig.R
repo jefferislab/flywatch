@@ -220,6 +220,10 @@ g
 ggsave(filename = "alldata_EmptySplitcontrol_FDR10.pdf", width=16
        ,height =9 ,plot=g, path=".")
 
+#Use the new cell-type names
+NAmaster<-read.xlsx(file="/Users/dolanm/Dropbox/JFRCvisitorProject/Neuroanatomy_Master.xlsx", sheetIndex = 1)
+LHnewnames<-select(NAmaster,LHClusters., FinalNames)
+
 #Plot just the significants and colour by cell-type
 sig<-filter(pvals, Valence=="Significant" | Genotype=="EmptySp")
 sig<-filter(sig, Genotype!="Gr66a")
@@ -229,10 +233,11 @@ types$LineCode<-gsub(pattern = "L", replacement = "LH", x = types$LineCode, fixe
 
 sig_types<-merge(x = sig, by.x="Genotype", y=types, by.y = "LineCode", all.x = TRUE
                  , all.y=FALSE)
+sig_types<-merge(x=sig_types, by.x = "Clusters..Cluster", y = LHnewnames, by.y = "LHClusters.", all.x  = TRUE)
 
 g<-ggplot(data=sig_types, aes(x=reorder(Genotype, PI, FUN=mean), y=PI))
 g<-g+geom_hline(yintercept=median(filter(sig_types, Genotype=="EmptySp")$PI), alpha=0.8, colour="red", linetype="dashed")
-g<-g+geom_boxplot(aes(fill=reorder(Clusters..Cluster, PI, FUN=mean)), outlier.shape = NA)
+g<-g+geom_boxplot(aes(fill=reorder(FinalNames, PI, FUN=mean)), outlier.shape = NA)
 g<-g+geom_boxplot(data=filter(sig_types, Genotype=="EmptySp"), col="red", color="white", outlier.shape = NA)
 g<-g+geom_jitter(alpha=0.35, width=0.1, size=2 )
 g<-g+labs(x="Genotype", y="Performance Index",title="") #Titles
@@ -243,6 +248,7 @@ g<-g+theme(axis.text.x = element_text(size=10),  axis.text.y = element_text(size
 g<-g+theme(axis.text.x = element_text(size=12))
 g<-g+theme(axis.text.y = element_text(size=12))
 g<-g+theme(axis.title = element_text(size=15))
+g<-g+scale_fill_manual(values=c("#F8766D", "#00BA38", "blue", "steel blue", "cyan", "dark blue", "yellow", "magenta", "purple"))
 g
 ggsave(filename = "alldata_EmptySplitcontrol_FDR10_significants.pdf",plot=g, path=".")
 
