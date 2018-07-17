@@ -68,7 +68,7 @@ Mean_Of_Exp<-function(metric.list) {
 delta_metric<-function(df) {
   df<-mutate(df, M=((Stim1+Stim2)/2))
   df<-mutate(df, deltaM_M=(M-First30)/abs(First30))
-  metricSingleVal<-select(df, Genotype, deltaM_M)
+  metricSingleVal<-dplyr::select(df, Genotype, deltaM_M)
   metricSingleVal
 } #Calculate the delta metric value.
 calculate_significants<-function(dataframe, type=c("baseline", "deltametric"), p=.10){
@@ -274,6 +274,23 @@ remove_unwanted_lines<-function(df){
  df<-filter(df, Genotype!= "Gr66a")
  df<-filter(df, Genotype!= "L235")
  df<-filter(df, Genotype!= "L1000") #Only significant for Cturning, does not look convincing
+ #Remove the lines that are not going to be included in the paper (too broad/crappy/notLH)
+ df<-filter(df, Genotype!= "L2158")
+ df<-filter(df, Genotype!= "L2013")
+ df<-filter(df, Genotype!= "L16")
+ df<-filter(df, Genotype!= "L1806")
+ df<-filter(df, Genotype!= "L1965")
+ df<-filter(df, Genotype!= "L1966")
+ df<-filter(df, Genotype!= "L283")
+ df<-filter(df, Genotype!= "L371")
+ df<-filter(df, Genotype!= "L545")
+ df<-filter(df, Genotype!= "L574")
+ df<-filter(df, Genotype!= "L62")
+ df<-filter(df, Genotype!= "L784")
+ df<-filter(df, Genotype!= "test")
+ df<-filter(df, Genotype!= "SS00502")
+ df<-filter(df, Genotype!= "SS01262")
+ df<-filter(df, Genotype!= "SpEmpty")
  df
 }
 total.metrics<-lapply(total.metrics, FUN = remove_unwanted_lines)
@@ -286,8 +303,8 @@ total.metrics<-lapply(total.metrics, FUN= L_to_LH)
 #Calculate baseline, delta, stats and plot final graphs
 for(i in 1:length(total.metrics)) {
   metric<-names(total.metrics[i])
-  baseline<-select(total.metrics[[i]], Genotype, First30)
-  baseline<-arrange(baseline, desc(Genotype=="EmptySp"))
+  baseline<-dplyr::select(total.metrics[[i]], Genotype, First30)
+  baseline<-dplyr::arrange(baseline, desc(Genotype=="EmptySp"))
   if(metric=="CTurning") {
     baseline$First30<-abs(baseline$First30)
   }
