@@ -18,7 +18,7 @@ For the impatient ...
 ```r
 # install
 if (!require("devtools")) install.packages("devtools")
-devtools::install_github(c("jefferis/nat", "jefferislab/flywatch"))
+devtools::install_github("jefferislab/flywatch")
 
 # use
 library(flywatch)
