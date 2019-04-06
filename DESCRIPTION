@@ -1,8 +1,7 @@
 Package: flywatch
 Type: Package
 Title: Analyse fly behaviour data
-Version: 0.1
-Date: 2015-12-23
+Version: 0.2
 Author: Gregory Jefferis, Michael-John Dolan, Paavo Huoviala
 Maintainer: Gregory Jefferis <jefferis@gmail.com>
 Description: For the time being this is focussed on Yoshi Aso's four quadrant
