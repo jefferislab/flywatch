@@ -44,3 +44,16 @@ If it doesn't work or is missing a feature you can check if anyone else has
 complained and file an issue at github
 
 * https://github.com/jefferislab/flywatch/issues
+
+
+## Dolan analysis scripts
+
+This repository also wraps a number of analysis scripts written by 
+Mike Dolan for the paper originally preprinted as 
+
+Neurogenetic dissection of the Drosophila innate olfactory processing center
+Michael-John Dolan, Shahar Frechter, Alexander Shakeel Bates, Chuntao Dan, Paavo Huoviala, Ruairi J.V. Roberts, Philipp Schlegel, Serene Dhawan, Remy Tabano, Heather Dionne, Christina Christoforou, Kari Close, Ben Sutcliffe, Bianca Giuliani, Feng Li, Marta Costa, Gudrun Ihrke, Geoffrey Meissner, Davi Bock, Yoshinori Aso, Gerald Rubin, Gregory Jefferis
+bioRxiv 404277; doi: https://doi.org/10.1101/404277
+
+most of these scripts don't actually depend on the package itself, but
+can be found in the [demo](demo) folder.
