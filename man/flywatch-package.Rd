@@ -2,9 +2,13 @@
 % Please edit documentation in R/flywatch-package.R
 \docType{package}
 \name{flywatch-package}
-\alias{flywatch-package}
 \alias{flywatch}
+\alias{flywatch-package}
 \title{Behaviour Analysis for Fly Tracking Data}
+\description{
+For the time being this is focussed on Yoshi Aso's four quadrant
+    optogenenetic behaviour devloped at HHMI Janelia Research Campus.
+}
 \section{Yoshi Behaviour Rig}{
 
 
@@ -36,4 +40,11 @@
   2014 Dec 23;3:e04580. \href{http://dx.doi.org/10.7554/eLife.04580}{doi:
   10.7554/eLife.04580}.
 }
-\keyword{package}
+\seealso{
+Useful links:
+\itemize{
+  \item Report bugs at \url{https://github.com/jefferislab/flywatch/issues}
+}
+
+}
+\keyword{internal}

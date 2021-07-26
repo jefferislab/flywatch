@@ -28,8 +28,11 @@
 #'   2014 Dec 23;3:e04580. \href{http://dx.doi.org/10.7554/eLife.04580}{doi:
 #'   10.7554/eLife.04580}.
 #'
-#' @name flywatch-package
-#' @aliases flywatch
-#' @docType package
-#' @keywords package
+#' @keywords internal
+"_PACKAGE"
+
+# The following block is used by usethis to automatically manage
+# roxygen namespace tags. Modify with care!
+## usethis namespace: start
+## usethis namespace: end
 NULL
