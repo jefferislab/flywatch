@@ -1,3 +1,7 @@
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/jefferislab/flywatch/workflows/R-CMD-check/badge.svg)](https://github.com/jefferislab/flywatch/actions)
+<!-- badges: end -->
+
 # flywatch
 Code to analyse movies of flies. 
 
