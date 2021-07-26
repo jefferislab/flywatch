@@ -225,7 +225,7 @@ sink_stats <- function(path, type = c("baseline", "deltametric")) {
   sink(path, append = TRUE)
   print("/"); print("/")
   metric
-  if (type = "baseline") {
+  if (type == "baseline") {
     leveneTest(First30 ~ Genotype, data = baseline)
     print("---")
     kruskal.test(baseline)
@@ -233,8 +233,8 @@ sink_stats <- function(path, type = c("baseline", "deltametric")) {
       dunn.test.control(x = baseline$First30, g= as.factor(baseline$Genotype), p.adjust.method = "fdr")
 
   }
-  if(type="deltametric"){ #Fix this and match the variables
-    leveneTest(deltaM_M ~ Genotype, data =)
+  if(type=="deltametric"){ #Fix this and match the variables
+    leveneTest(deltaM_M ~ Genotype, data = baseline)
     print("---")
     kruskal.test(baseline)
     print("---")
