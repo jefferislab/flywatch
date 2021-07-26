@@ -5,9 +5,6 @@
 \alias{flywatch-package}
 \alias{flywatch}
 \title{Behaviour Analysis for Fly Tracking Data}
-\description{
-Behaviour Analysis for Fly Tracking Data
-}
 \section{Yoshi Behaviour Rig}{
 
 

@@ -4,9 +4,15 @@
 \alias{plot_ybr}
 \title{Plot time series data derived from Yoshi Behaviour Rig}
 \usage{
-plot_ybr(x, filter = FALSE, sides = 1, randts = FALSE,
+plot_ybr(
+  x,
+  filter = FALSE,
+  sides = 1,
+  randts = FALSE,
   lights = c(on1 = 30, off1 = 60, on2 = 90, off2 = 120),
-  lightcol = rgb(1, 0, 0, alpha = 0.3), ...)
+  lightcol = rgb(1, 0, 0, alpha = 0.3),
+  ...
+)
 }
 \arguments{
 \item{x}{A (multi-)time series object containing one or more behavioural
@@ -54,6 +60,7 @@ plot_ybr(summdata[,c('PIpixel', 'PIn')], filter=1, plot.type = "single",
 \seealso{
 \code{\link[stats]{filter}}, \code{\link[stats]{plot.ts}}
 
-Other ybr-plot: \code{\link{plot_smoothed_displacement}}
+Other ybr-plot: 
+\code{\link{plot_smoothed_displacement}()}
 }
 \concept{ybr-plot}

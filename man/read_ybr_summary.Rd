@@ -32,7 +32,9 @@ plot(some_summ[,c(1,2,7)])
 \seealso{
 \code{\link[stats]{ts}}
 
-Other read_ybr: \code{\link{find_ybr_tiffs}},
-  \code{\link{read_ybr_tiff}}, \code{\link{read_ybr_xy}}
+Other read_ybr: 
+\code{\link{find_ybr_tiffs}()},
+\code{\link{read_ybr_tiff}()},
+\code{\link{read_ybr_xy}()}
 }
 \concept{read_ybr}

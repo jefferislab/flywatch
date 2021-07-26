@@ -27,10 +27,12 @@ plot_smoothed_displacement(tiffdf$tiff[1])
 \seealso{
 \code{\link[stats]{filter}}, \code{\link[stats]{plot.ts}}
 
-Other ybr-displacement: \code{\link{ybr_median_displacement}},
-  \code{\link{ybr_raw_displacements}}
+Other ybr-displacement: 
+\code{\link{ybr_median_displacement}()},
+\code{\link{ybr_raw_displacements}()}
 
-Other ybr-plot: \code{\link{plot_ybr}}
+Other ybr-plot: 
+\code{\link{plot_ybr}()}
 }
 \concept{ybr-displacement}
 \concept{ybr-plot}

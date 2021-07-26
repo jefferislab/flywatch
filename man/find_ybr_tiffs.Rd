@@ -8,9 +8,11 @@ find_ybr_tiffs(path = ".", recursive = TRUE, full.names = TRUE)
 }
 \arguments{
 \item{path}{a character vector of full path names; the default
-    corresponds to the working directory, \code{\link{getwd}()}.  Tilde
-    expansion (see \code{\link{path.expand}}) is performed.  Missing
-    values will be ignored.}
+    corresponds to the working directory, \code{\link[base]{getwd}()}.  Tilde
+    expansion (see \code{\link[base]{path.expand}}) is performed.  Missing
+    values will be ignored.  Elements with a marked encoding will
+    be converted to the native encoding (and if that fails, considered
+    non-existent).}
 
 \item{recursive}{logical.  Should the listing recurse into directories?}
 
@@ -41,7 +43,9 @@ for(i in 1:nrow(tiffdf)){
 }
 }
 \seealso{
-Other read_ybr: \code{\link{read_ybr_summary}},
-  \code{\link{read_ybr_tiff}}, \code{\link{read_ybr_xy}}
+Other read_ybr: 
+\code{\link{read_ybr_summary}()},
+\code{\link{read_ybr_tiff}()},
+\code{\link{read_ybr_xy}()}
 }
 \concept{read_ybr}

@@ -17,7 +17,8 @@ each frame \code{n}  the nearest neighbour distance to objects in frame
 there are recognised flies.
 }
 \seealso{
-Other ybr-displacement: \code{\link{plot_smoothed_displacement}},
-  \code{\link{ybr_median_displacement}}
+Other ybr-displacement: 
+\code{\link{plot_smoothed_displacement}()},
+\code{\link{ybr_median_displacement}()}
 }
 \concept{ybr-displacement}

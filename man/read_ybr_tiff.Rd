@@ -10,12 +10,14 @@ read_ybr_tiff(f, all = TRUE, as.is = FALSE, ...)
 \item{f}{Path to a TIFF file on disk \bold{or} the data from a TIFF that has
 previously been read into R.}
 
-\item{all}{TIFF files can contain more than one image, if \code{all =
-    TRUE} then all images are returenin a list, otherwsie only the first
-  image is returned.}
+\item{all}{logical scalar or integer vector. TIFF files can contain
+    more than one image. If \code{all=TRUE} then all images are returned
+    in a list of images. If \code{all} is a vector, it gives the
+    (1-based) indices of images to return. Otherwise only the first
+    image is returned.}
 
-\item{as.is}{attempt to return original values without re-scaling
-  where possible}
+\item{as.is}{logical, if \code{TRUE} an attempt will be made to return
+  the original integer values without re-scaling where possible}
 
 \item{...}{Additional arguments passed to \code{\link[tiff]{readTIFF}}}
 }
@@ -31,7 +33,9 @@ Low level function to read in raw data from a Yoshi behaviour
 \seealso{
 \code{\link[tiff]{readTIFF}}
 
-Other read_ybr: \code{\link{find_ybr_tiffs}},
-  \code{\link{read_ybr_summary}}, \code{\link{read_ybr_xy}}
+Other read_ybr: 
+\code{\link{find_ybr_tiffs}()},
+\code{\link{read_ybr_summary}()},
+\code{\link{read_ybr_xy}()}
 }
 \concept{read_ybr}

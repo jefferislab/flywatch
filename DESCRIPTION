@@ -10,4 +10,5 @@ License: GPL-3
 LazyData: TRUE
 Imports: tiff, nabor, stringr, lubridate, stats
 BugReports: https://github.com/jefferislab/flywatch/issues
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
+Encoding: UTF-8
