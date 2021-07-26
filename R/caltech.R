@@ -4,9 +4,11 @@
 #' @seealso
 #' \url{http://www.vision.caltech.edu/Tools/FlyTracker/documentation.html}
 #' @export
+#' @return an array with dimensions time x features x flies
 #' @examples
 #' \dontrun{
-#' x=read_caltech_feat('~/projects/Dana/tracking/samples/210517_006-feat.mat')
+#' feats=read_caltech_feat('~/projects/Dana/tracking/samples/210517_006-feat.mat')
+#' plot(ts(feats[,"vel", "fly001"], start=0, frequency=30))
 #' }
 read_caltech_feat <- function(f) {
   x=rmatio::read.mat(path.expand(f))

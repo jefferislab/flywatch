@@ -3,6 +3,7 @@
 export(find_ybr_tiffs)
 export(plot_smoothed_displacement)
 export(plot_ybr)
+export(read_caltech_feat)
 export(read_ybr_summary)
 export(read_ybr_tiff)
 export(read_ybr_xy)
