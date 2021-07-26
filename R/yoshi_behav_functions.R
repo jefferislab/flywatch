@@ -162,6 +162,9 @@ plot_smoothed_displacement<-function(xy, filter=1, ...){
 #' @seealso \code{\link[stats]{filter}}, \code{\link[stats]{plot.ts}}
 #' @family ybr-plot
 #' @export
+#' @importFrom grDevices rgb
+#' @importFrom graphics lines par rect
+#' @importFrom stats deltat median start ts
 #' @examples
 #' tiffdf=find_ybr_tiffs(system.file("ybr_tiffs", package='flywatch'))
 #' summdata=read_ybr_summary(tiffdf$tiff[1])
