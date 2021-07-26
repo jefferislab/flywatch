@@ -221,23 +221,23 @@ baseline<-select(all.metrics[[1]], Genotype, First30)
 baseline<-arrange(baseline, desc(Genotype=="EmptySp"))
 
 #Add the summary statistics to a text file
-sink_stats<-function(path, type=c("baseline", "deltametric")) {
+sink_stats <- function(path, type = c("baseline", "deltametric")) {
   sink(path, append = TRUE)
   print("/"); print("/")
   metric
-  if(type="baseline") {
-      leveneTest(First30~Genotype, data = baseline)
-      print("---")
-      kruskal.test(baseline)
-      print("---")
+  if (type = "baseline") {
+    leveneTest(First30 ~ Genotype, data = baseline)
+    print("---")
+    kruskal.test(baseline)
+    print("---")
       dunn.test.control(x = baseline$First30, g= as.factor(baseline$Genotype), p.adjust.method = "fdr")
 
-     }
+  }
   if(type="deltametric"){ #Fix this and match the variables
-      leveneTest(deltaM_M~Genotype, data = )
-      print("---")
-      kruskal.test(baseline)
-      print("---")
+    leveneTest(deltaM_M ~ Genotype, data =)
+    print("---")
+    kruskal.test(baseline)
+    print("---")
       dunn.test.control(x = baseline$First30, g= as.factor(baseline$Genotype), p.adjust.method = "fdr")
   }
   print("---")
@@ -245,7 +245,7 @@ sink_stats<-function(path, type=c("baseline", "deltametric")) {
   sink()
 }
 calculate_significants<-function(dataframe, type=c("baseline", "deltametric"), p=.10){
-  if(type="baseline") {
+  if(type=="baseline") {
     pvals<-as.data.frame(dunn.test.control(x = dataframe$First30,
                                            g= as.factor(dataframe$Genotype),
                                            p.adjust.method = "fdr")$p.value)
