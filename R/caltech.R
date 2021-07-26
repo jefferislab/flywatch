@@ -30,6 +30,8 @@ read_caltech_feat <- function(f) {
   stopifnot(all.equal(nfeats, length(feat.names)))
   dimnames(feat.data)=list(sprintf("fly%03d", seq_len(nflies)),
                            NULL, feat.names)
+  # permute from fly, time, features => time, features, fly
+  feat.data=aperm(feat.data, c(2,3,1))
   attr(feat.data, "feat.names") <- feat.names
   attr(feat.data, "feat.units") <- feat.units
   feat.data
