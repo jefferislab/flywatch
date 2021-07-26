@@ -7,7 +7,6 @@ Maintainer: Gregory Jefferis <jefferis@gmail.com>
 Description: For the time being this is focussed on Yoshi Aso's four quadrant
     optogenenetic behaviour devloped at HHMI Janelia Research Campus.
 License: GPL-3
-LazyData: TRUE
 Imports: tiff, nabor, stringr, lubridate, stats
 BugReports: https://github.com/jefferislab/flywatch/issues
 RoxygenNote: 7.1.1
